@@ -8,7 +8,7 @@ from time import time
 from ultralytics import YOLO
 from torchvision.ops import nms
 
-from trackable_objects import Object
+from decision_engine.trackable_objects import Object
 from camera_calculations.mono_video import MonoVision
 from camera_calculations.stereo_video import StereoVision
 from decision_engine.decision_matrix import DecisionMatrix
