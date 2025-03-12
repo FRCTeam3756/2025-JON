@@ -28,8 +28,8 @@ logging.basicConfig(
 
 class Config:
     """Configuration settings for video processing."""
-    ROTATE_IMAGE: bool = True
-    FLIP_IMAGE_HORIZONTALLY: bool = False
+    ROTATE_IMAGE: bool = False
+    FLIP_IMAGE_HORIZONTALLY: bool = True
     FLIP_IMAGE_VERTICALLY: bool = False
 
     FRAME_RATE_REFRESH_RATE: int = 200
@@ -37,8 +37,8 @@ class Config:
     CONFIDENCE_THRESHOLD: float = 0.7
     DISPLAY: bool = True
     SAVE_VIDEO: bool = True
-    VIDEO_PATH: str = "video.mp4" #0 #"http://limelight.local:5800" #
-    WEIGHTS_LOCATION: str = 'vision_tracking/runs/train/weights/best.onnx'
+    VIDEO_PATH: str = 0 #"video.mp4" #"http://limelight.local:5800" #
+    WEIGHTS_LOCATION: str = 'vision_tracking/runs/train/weights/best.engine'
     LABEL_COLORS: dict[str, list[int]] = {
         "0": [0, 155, 255],
         "1": [0, 0, 255]
@@ -47,7 +47,7 @@ class Config:
 class YOLODetector:
     def __init__(self):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.model = YOLO(Config.WEIGHTS_LOCATION)
+        self.model = YOLO(Config.WEIGHTS_LOCATION, task='detect')
 
     def detect(self, frame):
         """Run detection on a frame and return processed results."""
