@@ -26,12 +26,16 @@ class Object:
 class Algae(Object):
     def __init__(self):
         super().__init__()
-    
-class CoralBranch(Object):
+
+class Coral(Object):
     def __init__(self):
         super().__init__()
 
 class Cage(Object):
+    def __init__(self):
+        super().__init__()
+    
+class CagePole(Object):
     def __init__(self):
         super().__init__()
 
