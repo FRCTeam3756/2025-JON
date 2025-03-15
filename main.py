@@ -24,7 +24,7 @@ class Config:
     FRAME_WIDTH = 640
     FRAME_HEIGHT = 640
     
-    ROTATE_IMAGE: bool = True
+    ROTATE_IMAGE: bool = False
     FLIP_IMAGE_HORIZONTALLY: bool = False
     FLIP_IMAGE_VERTICALLY: bool = False
 
@@ -33,7 +33,8 @@ class Config:
     CONFIDENCE_THRESHOLD: float = 0.7
     DISPLAY: bool = True
     SAVE_VIDEO: bool = True
-    VIDEO_PATH: str = "video.mp4" #"http://limelight.local:5800" #0 #
+    INPUT_VIDEO_PATH: str = "test/input/video2.mp4" #"http://limelight.local:5800" #0 #
+    OUTPUT_VIDEO_PATH: str = 'test/output/output.mp4'
     WEIGHTS_LOCATION: str = 'vision_tracking/runs/train/weights/best.onnx'
     LABEL_COLOURS: dict[str, list[int]] = {
         "0": [85, 186, 151], # Algae
@@ -47,14 +48,14 @@ class Config:
 def main():
     decision_matrix = DecisionMatrix()
     processor = FrameProcessor(Config())
-    cap = cv2.VideoCapture(Config.VIDEO_PATH)
+    cap = cv2.VideoCapture(Config.INPUT_VIDEO_PATH)
     
     if not cap.isOpened():
-        logging.error(f"Error opening video: {Config.VIDEO_PATH}")
+        logging.error(f"Error opening video: {Config.INPUT_VIDEO_PATH}")
     
     if Config.SAVE_VIDEO:
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        out = cv2.VideoWriter('output.mp4', fourcc, 30.0, (Config.FRAME_WIDTH, Config.FRAME_HEIGHT))
+        out = cv2.VideoWriter(Config.OUTPUT_VIDEO_PATH, fourcc, 30.0, (Config.FRAME_WIDTH, Config.FRAME_HEIGHT))
     
     try:
         print("Made connection to cap")

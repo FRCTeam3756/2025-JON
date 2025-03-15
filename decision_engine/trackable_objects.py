@@ -50,9 +50,8 @@ class Coral(Object):
 
 class Robot(Object):
     """The class that holds all the characteristics of a Robot"""
-    def __init__(self, team_colour):
+    def __init__(self):
         super().__init__()
-        self.team_colour = team_colour
         self.travel_angle = None
         self.travel_speed = None
         self.velocity_x = None
