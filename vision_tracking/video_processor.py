@@ -62,12 +62,12 @@ class FrameProcessor:
         self.start_time = time()
         self.frame_count = 0
         self.game_pieces = {
-            'algae': [],
-            'cages': [],
-            'cage_poles': [],
-            'chains': [],
-            'corals': [],
-            'robots': []
+            Algae: [],
+            Cage: [],
+            CagePole: [],
+            Chain: [],
+            Coral: [],
+            Robot: []
         }
 
     def fix_frame(self, frame):
@@ -114,7 +114,7 @@ class FrameProcessor:
                     alga.update_confidence(conf)
                     distance, angle = self.property_calculation.find_distance_and_angle(center_x, scale)
                     alga.update_relative_location(distance, angle)
-                    self.game_pieces['algae'].append(alga)
+                    self.game_pieces[Algae].append(alga)
                 
                 case 1: # Cage
                     x1, y1, x2, y2 = box
@@ -122,12 +122,12 @@ class FrameProcessor:
                     scale = ((x2 - x1) + (y2 - y1)) / 2
                     ratio = (x2 - x1) / (y2 - y1)
                     
-                    alga = Algae()
-                    alga.update_frame_location(center_x, center_y, scale, ratio, time())
-                    alga.update_confidence(conf)
+                    cage = Cage()
+                    cage.update_frame_location(center_x, center_y, scale, ratio, time())
+                    cage.update_confidence(conf)
                     distance, angle = self.property_calculation.find_distance_and_angle(center_x, scale)
-                    alga.update_relative_location(distance, angle)
-                    self.game_pieces['cages'].append(alga)
+                    cage.update_relative_location(distance, angle)
+                    self.game_pieces[Cage].append(cage)
 
                 case 2: # Cage Pole
                     x1, y1, x2, y2 = box
@@ -140,7 +140,7 @@ class FrameProcessor:
                     cage_pole.update_confidence(conf)
                     distance, angle = self.property_calculation.find_distance_and_angle(center_x, scale)
                     cage_pole.update_relative_location(distance, angle)
-                    self.game_pieces['cage_poles'].append(cage_pole)
+                    self.game_pieces[CagePole].append(cage_pole)
                 
                 case 3: # Chain
                     x1, y1, x2, y2 = box
@@ -153,7 +153,7 @@ class FrameProcessor:
                     chain.update_confidence(conf)
                     distance, angle = self.property_calculation.find_distance_and_angle(center_x, scale)
                     chain.update_relative_location(distance, angle)
-                    self.game_pieces['chains'].append(chain)
+                    self.game_pieces[Chain].append(chain)
                 
                 case 4: # Coral
                     x1, y1, x2, y2 = box
@@ -166,7 +166,7 @@ class FrameProcessor:
                     coral.update_confidence(conf)
                     distance, angle = self.property_calculation.find_distance_and_angle(center_x, scale)
                     coral.update_relative_location(distance, angle)
-                    self.game_pieces['corals'].append(coral)
+                    self.game_pieces[Coral].append(coral)
                 
                 case 5: # Robot
                     x1, y1, x2, y2 = box
@@ -179,7 +179,7 @@ class FrameProcessor:
                     robot.update_confidence(conf)
                     distance, angle = self.property_calculation.find_distance_and_angle(center_x, scale)
                     robot.update_relative_location(distance, angle)
-                    self.game_pieces['robots'].append(robot)
+                    self.game_pieces[Robot].append(robot)
 
     def apply_nms(self, boxes, confidences):
         """Apply Non-Maximum Suppression to filter bounding boxes."""

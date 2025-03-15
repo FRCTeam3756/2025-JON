@@ -35,7 +35,7 @@ class Config:
     SAVE_VIDEO: bool = True
     INPUT_VIDEO_PATH: str = "test/input/video2.mp4" #"http://limelight.local:5800" #0 #
     OUTPUT_VIDEO_PATH: str = 'test/output/output.mp4'
-    WEIGHTS_LOCATION: str = 'vision_tracking/runs/train/weights/best.onnx'
+    WEIGHTS_LOCATION: str = 'vision_tracking/weights/best.onnx'
     LABEL_COLOURS: dict[str, list[int]] = {
         "0": [85, 186, 151], # Algae
         "1": [0, 0, 0], # Cage
