@@ -1,5 +1,2 @@
 logs/
-vision_tracking/dataset/
-vision_tracking/scripts/
 test/
-yolo11n.pt
