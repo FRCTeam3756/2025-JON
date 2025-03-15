@@ -183,17 +183,14 @@ class FrameProcessor:
 
     def apply_nms(self, boxes, confidences):
         """Apply Non-Maximum Suppression to filter bounding boxes."""
-        if boxes.size == 0:
+        if len(boxes) == 0:
             return np.array([])
 
-        if self.detector.device.type == 'cuda':
-            boxes_tensor = torch.tensor(boxes, dtype=torch.float16, device=self.detector.device)
-            confidences_tensor = torch.tensor(confidences, dtype=torch.float16, device=self.detector.device)
-        else:
-            boxes_tensor = torch.tensor(boxes, dtype=torch.float32, device=self.detector.device)
-            confidences_tensor = torch.tensor(confidences, dtype=torch.float32, device=self.detector.device)
+        boxes_tensor = torch.tensor(boxes, dtype=torch.float32, device=self.detector.device)
+        confidences_tensor = torch.tensor(confidences, dtype=torch.float32, device=self.detector.device)
         
         indices = torchvision.ops.nms(boxes_tensor.to(self.detector.device), confidences_tensor.to(self.detector.device), self.config.COVERAGE_THRESHOLD)
+        
         return indices.cpu().numpy()
 
     def calculate_frame_rate(self):
