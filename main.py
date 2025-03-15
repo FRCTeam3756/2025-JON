@@ -5,6 +5,7 @@ import logging
 from vision_tracking.video_display import VideoDisplay
 from vision_tracking.video_processor import FrameProcessor
 from networking.rio_communication import post_to_network_tables
+from decision_engine.decision_matrix import DecisionMatrix
 
 ###############################################################
 
@@ -24,7 +25,7 @@ class Config:
     FRAME_HEIGHT = 640
     
     ROTATE_IMAGE: bool = True
-    FLIP_IMAGE_HORIZONTALLY: bool = True
+    FLIP_IMAGE_HORIZONTALLY: bool = False
     FLIP_IMAGE_VERTICALLY: bool = False
 
     MAXIMUM_FRAME_RATE: int = 200
@@ -35,11 +36,16 @@ class Config:
     VIDEO_PATH: str = "video.mp4" #"http://limelight.local:5800" #0 #
     WEIGHTS_LOCATION: str = 'vision_tracking/runs/train/weights/best.onnx'
     LABEL_COLOURS: dict[str, list[int]] = {
-        "0": [0, 155, 255],
-        "1": [0, 0, 255]
+        "0": [85, 186, 151], # Algae
+        "1": [0, 0, 0], # Cage
+        "2": [0, 0, 255], # Cage Pole
+        "3": [149, 149, 149], # Chain
+        "4": [255, 255, 255], # Coral
+        "5": [121, 217, 255], # Robot
     }
 
 def main():
+    decision_matrix = DecisionMatrix()
     processor = FrameProcessor(Config())
     cap = cv2.VideoCapture(Config.VIDEO_PATH)
     
@@ -60,13 +66,18 @@ def main():
 
             frame = processor.fix_frame(frame)
             
-            processed_frame, note = processor.process_frame(frame)
-            if note:
-                post_to_network_tables((note.distance, note.angle))
+            processed_frame, game_pieces = processor.process_frame(frame)
+
+            algae = game_pieces
+
+            best_alga = decision_matrix.compute_best_game_piece(*game_pieces) or None
+
+            if best_alga:
+                post_to_network_tables((best_alga.distance, best_alga.angle))
                 
             if Config.DISPLAY:
-                if note:
-                    VideoDisplay.draw_angle_line(frame, note.angle)
+                if best_alga:
+                    VideoDisplay.draw_angle_line(frame, best_alga.angle)
                 VideoDisplay.show_frame(processed_frame)
                 
             if Config.SAVE_VIDEO:

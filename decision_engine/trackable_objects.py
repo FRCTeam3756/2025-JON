@@ -24,22 +24,32 @@ class Object:
         self.angle = angle
 
 class Algae(Object):
-    def __init__(self):
-        super().__init__()
-
-class Coral(Object):
+    """The class that holds all the characteristics of an Algae"""
     def __init__(self):
         super().__init__()
 
 class Cage(Object):
+    """The class that holds all the characteristics of a Cage"""
     def __init__(self):
         super().__init__()
     
 class CagePole(Object):
+    """The class that holds all the characteristics of a Cage Pole"""
+    def __init__(self):
+        super().__init__()
+
+class Chain(Object):
+    """The class that holds all the characteristics of a Cage"""
+    def __init__(self):
+        super().__init__()
+
+class Coral(Object):
+    """The class that holds all the characteristics of a Coral"""
     def __init__(self):
         super().__init__()
 
 class Robot(Object):
+    """The class that holds all the characteristics of a Robot"""
     def __init__(self, team_colour):
         super().__init__()
         self.team_colour = team_colour

@@ -9,10 +9,9 @@ import numpy as np
 from ultralytics import YOLO
 
 from .video_display import VideoDisplay
-from decision_engine.trackable_objects import Object
+from decision_engine.trackable_objects import *
 from camera_calculations.mono_video import MonoVision
 from camera_calculations.stereo_video import StereoVision
-from decision_engine.decision_matrix import DecisionMatrix
 
 ###############################################################
 
@@ -58,17 +57,17 @@ class FrameProcessor:
         logging.info(f'Using device: {"GPU" if torch.cuda.is_available() else "CPU"}')
         self.config = config
         self.detector = YOLODetector(self.config.WEIGHTS_LOCATION, self.config.CONFIDENCE_THRESHOLD)
-        self.decision_matrix = DecisionMatrix()
         self.property_calculation = MonoVision()
         self.depth_estimation = StereoVision()
         self.start_time = time()
         self.frame_count = 0
         self.game_pieces = {
             'algae': [],
-            'coral': [],
-            'cage': [],
-            'cage_pole': [],
-            'robot': []
+            'cages': [],
+            'cage_poles': [],
+            'chains': [],
+            'corals': [],
+            'robots': []
         }
 
     def fix_frame(self, frame):
@@ -93,28 +92,94 @@ class FrameProcessor:
             class_ids_filtered = class_ids[indices]
             
             frame = VideoDisplay.annotate_frame(frame, boxes_filtered, class_ids_filtered, self.config.LABEL_COLOURS)
-            # self.update_game_pieces(boxes_filtered, confidences_filtered, class_ids_filtered)
+            self.update_game_pieces(boxes_filtered, confidences_filtered, class_ids_filtered)
 
-        if self.game_pieces:
-            note = self.decision_matrix.compute_best_game_piece(*self.game_pieces) or None
-        return frame, note
+        return frame, self.game_pieces
 
     def update_game_pieces(self, boxes, confidences, class_ids):
         """Update game pieces with detection data for game piece selection."""
-        self.game_pieces.clear()
+        for key in self.game_pieces:
+            self.game_pieces[key] = []
+
         for box, conf, class_id in zip(boxes, confidences, class_ids):
-            if class_id == 0:
-                x1, y1, x2, y2 = box
-                center_x, center_y = (x1 + x2) // 2, (y1 + y2) // 2
-                scale = ((x2 - x1) + (y2 - y1)) / 2
-                ratio = (x2 - x1) / (y2 - y1)
+            match class_id:
+                case 0: # Algae
+                    x1, y1, x2, y2 = box
+                    center_x, center_y = (x1 + x2) // 2, (y1 + y2) // 2
+                    scale = ((x2 - x1) + (y2 - y1)) / 2
+                    ratio = (x2 - x1) / (y2 - y1)
+                    
+                    alga = Algae()
+                    alga.update_frame_location(center_x, center_y, scale, ratio, time())
+                    alga.update_confidence(conf)
+                    distance, angle = self.property_calculation.find_distance_and_angle(center_x, scale)
+                    alga.update_relative_location(distance, angle)
+                    self.game_pieces['algae'].append(alga)
                 
-                note = Object()
-                note.update_frame_location(center_x, center_y, scale, ratio, time())
-                note.update_confidence(conf)
-                distance, angle = self.property_calculation.find_distance_and_angle(center_x, scale)
-                note.update_relative_location(distance, angle)
-                self.game_pieces.append(note)
+                case 1: # Cage
+                    x1, y1, x2, y2 = box
+                    center_x, center_y = (x1 + x2) // 2, (y1 + y2) // 2
+                    scale = ((x2 - x1) + (y2 - y1)) / 2
+                    ratio = (x2 - x1) / (y2 - y1)
+                    
+                    alga = Algae()
+                    alga.update_frame_location(center_x, center_y, scale, ratio, time())
+                    alga.update_confidence(conf)
+                    distance, angle = self.property_calculation.find_distance_and_angle(center_x, scale)
+                    alga.update_relative_location(distance, angle)
+                    self.game_pieces['cages'].append(alga)
+
+                case 2: # Cage Pole
+                    x1, y1, x2, y2 = box
+                    center_x, center_y = (x1 + x2) // 2, (y1 + y2) // 2
+                    scale = ((x2 - x1) + (y2 - y1)) / 2
+                    ratio = (x2 - x1) / (y2 - y1)
+                    
+                    cage_pole = CagePole()
+                    cage_pole.update_frame_location(center_x, center_y, scale, ratio, time())
+                    cage_pole.update_confidence(conf)
+                    distance, angle = self.property_calculation.find_distance_and_angle(center_x, scale)
+                    cage_pole.update_relative_location(distance, angle)
+                    self.game_pieces['cage_poles'].append(cage_pole)
+                
+                case 3: # Chain
+                    x1, y1, x2, y2 = box
+                    center_x, center_y = (x1 + x2) // 2, (y1 + y2) // 2
+                    scale = ((x2 - x1) + (y2 - y1)) / 2
+                    ratio = (x2 - x1) / (y2 - y1)
+                    
+                    chain = Chain()
+                    chain.update_frame_location(center_x, center_y, scale, ratio, time())
+                    chain.update_confidence(conf)
+                    distance, angle = self.property_calculation.find_distance_and_angle(center_x, scale)
+                    chain.update_relative_location(distance, angle)
+                    self.game_pieces['chains'].append(chain)
+                
+                case 4: # Coral
+                    x1, y1, x2, y2 = box
+                    center_x, center_y = (x1 + x2) // 2, (y1 + y2) // 2
+                    scale = ((x2 - x1) + (y2 - y1)) / 2
+                    ratio = (x2 - x1) / (y2 - y1)
+                    
+                    coral = Coral()
+                    coral.update_frame_location(center_x, center_y, scale, ratio, time())
+                    coral.update_confidence(conf)
+                    distance, angle = self.property_calculation.find_distance_and_angle(center_x, scale)
+                    coral.update_relative_location(distance, angle)
+                    self.game_pieces['corals'].append(coral)
+                
+                case 5: # Robot
+                    x1, y1, x2, y2 = box
+                    center_x, center_y = (x1 + x2) // 2, (y1 + y2) // 2
+                    scale = ((x2 - x1) + (y2 - y1)) / 2
+                    ratio = (x2 - x1) / (y2 - y1)
+                    
+                    robot = Robot()
+                    robot.update_frame_location(center_x, center_y, scale, ratio, time())
+                    robot.update_confidence(conf)
+                    distance, angle = self.property_calculation.find_distance_and_angle(center_x, scale)
+                    robot.update_relative_location(distance, angle)
+                    self.game_pieces['robots'].append(robot)
 
     def apply_nms(self, boxes, confidences):
         """Apply Non-Maximum Suppression to filter bounding boxes."""
