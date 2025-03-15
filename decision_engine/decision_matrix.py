@@ -40,17 +40,17 @@ class DecisionMatrix:
     def compute_best_game_piece(self, *game_pieces):
         """Compute the best game piece based on weighted attributes."""
         if not game_pieces:
-            logging.info("No game pieces provided.")
-            return None
+            return
         
         best_piece = None
+        
         for piece in game_pieces:
             if self.validate_game_piece(piece):
                 if best_piece is None or self.compute_score(piece) > self.compute_score(best_piece):
                     best_piece = piece
         
         if best_piece is None:
-            logging.warning("No valid game pieces available.")
+            logging.info("All pieces suck.")
         return best_piece
         
     def validate_game_piece(self, game_piece):

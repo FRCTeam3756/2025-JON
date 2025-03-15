@@ -20,11 +20,14 @@ logging.basicConfig(
 
 class Config:
     """Configuration settings for video processing."""
-    ROTATE_IMAGE: bool = False
+    FRAME_WIDTH = 640
+    FRAME_HEIGHT = 640
+    
+    ROTATE_IMAGE: bool = True
     FLIP_IMAGE_HORIZONTALLY: bool = True
     FLIP_IMAGE_VERTICALLY: bool = False
 
-    FRAME_RATE_REFRESH_RATE: int = 200
+    MAXIMUM_FRAME_RATE: int = 200
     COVERAGE_THRESHOLD: float = 0.4
     CONFIDENCE_THRESHOLD: float = 0.7
     DISPLAY: bool = True
@@ -45,17 +48,14 @@ def main():
     
     if Config.SAVE_VIDEO:
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-        frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-
-        out = cv2.VideoWriter('output.mp4', fourcc, 30.0, (frame_width, frame_height))
+        out = cv2.VideoWriter('output.mp4', fourcc, 30.0, (Config.FRAME_WIDTH, Config.FRAME_HEIGHT))
     
     try:
-        print("Made connection to cap. Look for reaction on DS")
+        print("Made connection to cap")
         while cap.isOpened():
             ret, frame = cap.read()
             if not ret:
-                logging.warning("End of video stream.")
+                logging.info("End of video stream.")
                 break
 
             frame = processor.fix_frame(frame)
@@ -70,7 +70,7 @@ def main():
                 VideoDisplay.show_frame(processed_frame)
                 
             if Config.SAVE_VIDEO:
-                out.write(cv2.cvtColor(processed_frame, cv2.COLOR_RGB2BGR))
+                out.write(processed_frame)
                 
             processor.calculate_frame_rate()
 

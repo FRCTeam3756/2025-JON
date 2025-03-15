@@ -24,7 +24,4 @@ class VideoDisplay:
         end_x = int(start_point[0] + length * math.sin(math.radians(angle)))
         end_y = int(start_point[1] - length * math.cos(math.radians(angle)))
         
-        if 0 <= end_x < width and 0 <= end_y < height:
-            cv2.line(frame, start_point, (end_x, end_y), (0, 155, 255), 2)
-        else:
-            logging.warning(f"Line endpoint out of bounds: ({end_x}, {end_y}) for angle {angle}")
+        cv2.line(frame, start_point, (end_x, end_y), (0, 155, 255), 2)

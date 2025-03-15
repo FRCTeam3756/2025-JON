@@ -134,7 +134,7 @@ class FrameProcessor:
     def calculate_frame_rate(self):
         """Calculate and log the frame processing rate."""
         self.frame_count += 1
-        if self.frame_count % self.config.FRAME_RATE_REFRESH_RATE == 0:
+        if self.frame_count % self.config.MAXIMUM_FRAME_RATE == 0:
             elapsed_time = time() - self.start_time
             fps = self.frame_count / elapsed_time
             logging.info(f"Processing FPS: {fps:.2f}")
