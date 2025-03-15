@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+from decision_engine.trackable_objects import *
 
 script_name = os.path.splitext(os.path.basename(__file__))[0]
 
@@ -37,7 +38,7 @@ class DecisionMatrix:
             logging.error(f"An unexpected error occurred: {e}")
             raise
 
-    def compute_best_game_piece(self, *game_pieces):
+    def compute_best_game_piece(self, *game_pieces: Object) -> Object:
         """Compute the best game piece based on weighted attributes."""
         if not game_pieces:
             return
@@ -53,7 +54,7 @@ class DecisionMatrix:
             logging.info("All pieces suck.")
         return best_piece
         
-    def validate_game_piece(self, game_piece):
+    def validate_game_piece(self, game_piece: Object) -> Object:
         """Check if a game piece has all required attributes."""
         missing_attributes = [attr for attr in self.REQUIRED_ATTRIBUTES if getattr(game_piece, attr, None) is None]
         if missing_attributes:

@@ -3,6 +3,7 @@ import math
 RECENT_TIME_THRESHOLD = 0.5
 
 class Object:
+    """The abstract class for all vision tracked objects"""
     def __init__(self):
         self.x = None
         self.y = None
