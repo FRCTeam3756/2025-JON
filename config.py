@@ -46,3 +46,8 @@ class AutoHangConfig:
 
 class LoggingConfig:
     FPS_LOGGING_RATE: int = 200
+
+class NetworkingConfig:
+    ROBOT_IP_ADDRESS: str = "10.37.56.2"
+    NETWORK_TABLE_NAME: str = "AIPipeline"
+    DATA_ENTRY_NAME: str = "data"

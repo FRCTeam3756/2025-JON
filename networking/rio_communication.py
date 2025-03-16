@@ -3,17 +3,11 @@ import json
 import logging
 from logs.logging_setup import setup_logger
 from typing import Optional, Dict, Any
+from config import NetworkingConfig
 
 from networktables import NetworkTables
 
 ##############################################################################
-
-ROBOT_IP_ADDRESS: str = "10.37.56.2"
-NETWORK_TABLE_NAME: str = "AIPipeline"
-DATA_ENTRY_NAME: str = "data"
-
-##############################################################################
-
 
 class RoboRio:
     def __init__(self) -> None:
@@ -21,10 +15,10 @@ class RoboRio:
         setup_logger(file_name)
         self.logger = logging.getLogger(file_name)
 
-        NetworkTables.initialize(server=ROBOT_IP_ADDRESS)
-        self.table = NetworkTables.getTable(NETWORK_TABLE_NAME)
+        NetworkTables.initialize(server=NetworkingConfig.ROBOT_IP_ADDRESS)
+        self.table = NetworkTables.getTable(NetworkingConfig.NETWORK_TABLE_NAME)
         self.logger.info(
-            f'NetworkTables initialized with server: {ROBOT_IP_ADDRESS}')
+            f'NetworkTables initialized with server: {NetworkingConfig.ROBOT_IP_ADDRESS}')
 
     def send_data(self, data: Dict[str, Any]) -> None:
         """Posts JSON data to NetworkTables."""
@@ -35,7 +29,7 @@ class RoboRio:
 
         try:
             json_data = json.dumps(data)
-            self.table.putString(DATA_ENTRY_NAME, json_data)
+            self.table.putString(NetworkingConfig.DATA_ENTRY_NAME, json_data)
             self.logger.info(
                 f'Data successfully posted to NetworkTables: {json_data}')
         except (TypeError, ValueError) as e:
