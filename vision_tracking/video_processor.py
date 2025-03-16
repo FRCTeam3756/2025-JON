@@ -9,6 +9,7 @@ import torchvision
 import numpy as np
 from ultralytics import YOLO
 
+from config import LoggingConfig, DisplayConfig, YOLOConfig
 from .video_display import VideoDisplay
 from decision_engine.trackable_objects import Algae, Cage, CagePole, Chain, Coral, Robot
 from camera_calculations.mono_video import MonoVision
@@ -58,10 +59,9 @@ class YOLODetector:
         return np.array(boxes), np.array(confidences), np.array(class_ids)
 
 class FrameProcessor:
-    def __init__(self, config) -> None:
+    def __init__(self) -> None:
         logging.info(f'Using device: {"GPU" if torch.cuda.is_available() else "CPU"}')
-        self.config = config
-        self.detector: YOLODetector = YOLODetector(self.config.WEIGHTS_LOCATION, self.config.CONFIDENCE_THRESHOLD)
+        self.detector: YOLODetector = YOLODetector(YOLOConfig.WEIGHTS_LOCATION, YOLOConfig.CONFIDENCE_THRESHOLD)
         self.property_calculation: MonoVision = MonoVision()
         self.depth_estimation: StereoVision = StereoVision()
         self.start_time: float = time.time()
@@ -71,11 +71,11 @@ class FrameProcessor:
         }
 
     def transform_frame(self, frame: np.ndarray) -> np.ndarray:
-        if self.config.ROTATE_IMAGE:
+        if DisplayConfig.ROTATE_IMAGE:
             frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
-        if self.config.FLIP_IMAGE_HORIZONTALLY:
+        if DisplayConfig.FLIP_IMAGE_HORIZONTALLY:
             frame = cv2.flip(frame, 1)
-        if self.config.FLIP_IMAGE_VERTICALLY:
+        if DisplayConfig.FLIP_IMAGE_VERTICALLY:
             frame = cv2.flip(frame, 0)
 
         return frame
@@ -89,7 +89,7 @@ class FrameProcessor:
             
             boxes_filtered, confidences_filtered, class_ids_filtered = boxes[indices], confidences[indices], class_ids[indices]
             
-            frame = VideoDisplay.annotate_frame(frame, boxes_filtered, class_ids_filtered, self.config.LABEL_COLOURS)
+            frame = VideoDisplay.annotate_frame(frame, boxes_filtered, class_ids_filtered, DisplayConfig.LABEL_COLOURS)
             self.update_game_pieces(boxes_filtered, confidences_filtered, class_ids_filtered)
 
         return frame, self.game_pieces
@@ -179,13 +179,13 @@ class FrameProcessor:
         boxes_tensor = torch.tensor(boxes, dtype=torch.float32, device=self.detector.device)
         confidences_tensor = torch.tensor(confidences, dtype=torch.float32, device=self.detector.device)
         
-        indices = torchvision.ops.nms(boxes_tensor.to(self.detector.device), confidences_tensor.to(self.detector.device), self.config.COVERAGE_THRESHOLD)
+        indices = torchvision.ops.nms(boxes_tensor.to(self.detector.device), confidences_tensor.to(self.detector.device), YOLOConfig.IOU_THRESHOLD)
         return indices.cpu().numpy()
 
     def calculate_frame_rate(self) -> None:
         """Calculate and log the frame processing rate."""
         self.frame_count += 1
-        if self.frame_count % self.config.FPS_LOGGING_RATE == 0:
+        if self.frame_count % LoggingConfig.FPS_LOGGING_RATE == 0:
             elapsed_time = time.time() - self.start_time
             fps = self.frame_count / elapsed_time
             logging.info(f"Processing FPS: {fps:.2f}")

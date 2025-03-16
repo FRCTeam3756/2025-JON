@@ -1,7 +1,7 @@
 import os
-import json
 import logging
 from typing import List, Tuple
+from config import DisplayConfig
 
 script_name = os.path.splitext(os.path.basename(__file__))[0]
 log_file = os.path.join("logs", f'{script_name}.log')
@@ -13,40 +13,10 @@ logging.basicConfig(
 )
 
 class HangDriveCommand:
-    FRAME_WIDTH: int = 640
-    FRAME_HEIGHT: int = 640
-
-    POLE_TOLERANCE_PERCENTAGE: float = 0.125
-    POLE_MINIMUM_TOLERANCE: int = FRAME_WIDTH // 100
-    POLE_MAXIMUM_TOLERANCE: int = FRAME_WIDTH // 10
-    POLE_STRAFING_MINIMUM: float = 0.05
-    POLE_STRAFING_MAXIMUM: float = 0.4
-
-    CAGE_CENTERED_WEIGHT: float = 0.5
-    CAGE_SIZE_WEIGHT: float = 0.5
-    CAGE_NOT_FOUND_SPEED: float = 0.2
-
     REQUIRED_ATTRIBUTES: List[str] = ['confidence', 'distance', 'angle']
     
     def __init__(self) -> None:
-        self.get_weighting()
-        
-    def get_weighting(self) -> None:
-        try:
-            with open("decision_engine/weights.json", "r") as config_file:
-                config: dict = json.load(config_file)
-                self.confidence_weight = config.get("confidence_weight", 1.0)
-                self.distance_weight = config.get("distance_weight", 1.0)
-                self.angle_weight = config.get("angle_weight", 1.0)  
-        except FileNotFoundError:
-            logging.error("Error: 'weights.json' file not found.")
-            raise
-        except json.JSONDecodeError:
-            logging.error("Error: 'weights.json' contains invalid JSON.")
-            raise
-        except Exception as e:
-            logging.error(f'An unexpected error occurred: {e}')
-            raise
+        pass
 
     @staticmethod
     def clamp(input: float, minimum: float, maximum: float) -> float:
@@ -78,9 +48,9 @@ class HangDriveCommand:
 
         best_cage: List[float] = max(
             cages,
-            key=lambda cage: ((cage[2] / self.FRAME_WIDTH) * self.CAGE_SIZE_WEIGHT) +
-            ((1 - abs(cage[0] - self.FRAME_WIDTH / 2) /
-             (self.FRAME_WIDTH / 2)) * self.CAGE_CENTERED_WEIGHT)
+            key=lambda cage: ((cage[2] / DisplayConfig.FRAME_WIDTH) * self.CAGE_SIZE_WEIGHT) +
+            ((1 - abs(cage[0] - DisplayConfig.FRAME_WIDTH / 2) /
+             (DisplayConfig.FRAME_WIDTH / 2)) * self.CAGE_CENTERED_WEIGHT)
         )
         return best_cage
 

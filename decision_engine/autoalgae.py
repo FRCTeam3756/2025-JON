@@ -1,6 +1,7 @@
 import os
-import json
 import logging
+
+from config import AutoAlgaeConfig
 from decision_engine.trackable_objects import *
 
 script_name = os.path.splitext(os.path.basename(__file__))[0]
@@ -19,24 +20,7 @@ class DecisionMatrix:
     REQUIRED_ATTRIBUTES = ['confidence', 'distance', 'angle']
     
     def __init__(self) -> None:
-        self.get_weighting()
-        
-    def get_weighting(self):
-        try:
-            with open("decision_engine/weights.json", "r") as config_file:
-                config = json.load(config_file)
-                self.confidence_weight = config.get("confidence_weight", 1.0)
-                self.distance_weight = config.get("distance_weight", 1.0)
-                self.angle_weight = config.get("angle_weight", 1.0)  
-        except FileNotFoundError:
-            logging.error("Error: 'weights.json' file not found.")
-            raise
-        except json.JSONDecodeError:
-            logging.error("Error: 'weights.json' contains invalid JSON.")
-            raise
-        except Exception as e:
-            logging.error(f"An unexpected error occurred: {e}")
-            raise
+        pass
 
     def compute_best_game_piece(self, *game_pieces: Object) -> Object:
         """Compute the best game piece based on weighted attributes."""
@@ -65,7 +49,7 @@ class DecisionMatrix:
     def compute_score(self, game_piece):
         """Calculate the weighted score for a game piece."""
         return (
-            self.confidence_weight * game_piece.confidence +
-            self.distance_weight * ((120 - game_piece.distance) / 120) +
-            self.angle_weight * (1 - abs(game_piece.angle) / 180)
+            AutoAlgaeConfig.ALGAE_CONFIDENCE_WEIGHT * game_piece.confidence +
+            AutoAlgaeConfig.ALGAE_DISTANCE_WEIGHT * ((120 - game_piece.distance) / 120) +
+            AutoAlgaeConfig.ALGAE_ANGULAR_WEIGHT * (1 - abs(game_piece.angle) / 180)
         )
