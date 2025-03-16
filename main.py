@@ -2,6 +2,7 @@ import os
 import cv2
 import logging
 from typing import Optional, List
+from logs.logging_setup import setup_logger
 
 from config import DisplayConfig
 from networking.rio_communication import RoboRio
@@ -12,23 +13,18 @@ from decision_engine.trackable_objects import Algae, Cage, CagePole, Chain, Cora
 
 ###############################################################
 
-script_name: str = os.path.splitext(os.path.basename(__file__))[0]
-log_file: str = os.path.join("logs", f"{script_name}.log")
-
-logging.basicConfig(
-    filename=log_file,
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
-)
-
 def main() -> None:
+    file_name = os.path.splitext(os.path.basename(__file__))[0]
+    setup_logger(file_name)
+    logger = logging.getLogger(file_name)
+
     roborio: RoboRio = RoboRio()
     decision_matrix: DecisionMatrix = DecisionMatrix()
     processor: FrameProcessor = FrameProcessor()
     cap: cv2.VideoCapture = cv2.VideoCapture(DisplayConfig.INPUT_VIDEO_PATH)
     
     if not cap.isOpened():
-        logging.error(f"Error opening video: {DisplayConfig.INPUT_VIDEO_PATH}")
+        logger.error(f"Error opening video: {DisplayConfig.INPUT_VIDEO_PATH}")
         return
     
     out: Optional[cv2.VideoWriter] = None
@@ -43,7 +39,7 @@ def main() -> None:
 
             ret, frame = cap.read()
             if not ret:
-                logging.info("End of video stream.")
+                logger.info("End of video stream.")
                 break
 
             frame = processor.transform_frame(frame)
@@ -73,8 +69,9 @@ def main() -> None:
         cap.release()
         if DisplayConfig.SAVE_VIDEO and out:
             out.release()
-            logging.info("Video file closed properly.")
+            logger.info("Video file closed properly.")
         cv2.destroyAllWindows()
+        logger.shutdown()
 
 ###############################################################
 

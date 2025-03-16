@@ -2,21 +2,16 @@ import os
 import logging
 from typing import List, Tuple
 from config import DisplayConfig
+from logs.logging_setup import setup_logger
 
-script_name = os.path.splitext(os.path.basename(__file__))[0]
-log_file = os.path.join("logs", f'{script_name}.log')
-
-logging.basicConfig(
-    filename=log_file,
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
-)
 
 class HangDriveCommand:
     REQUIRED_ATTRIBUTES: List[str] = ['confidence', 'distance', 'angle']
-    
+
     def __init__(self) -> None:
-        pass
+        file_name = os.path.splitext(os.path.basename(__file__))[0]
+        setup_logger(file_name)
+        self.logger = logging.getLogger(file_name)
 
     @staticmethod
     def clamp(input: float, minimum: float, maximum: float) -> float:
@@ -27,6 +22,7 @@ class HangDriveCommand:
 
         cage: List[float] = self.find_best_cage(cages)
         if not cage:
+            self.logger.warning("No cage found")
             return [0.0, 0.0, 0.0, 1]
 
         chain: List[float] = self.find_closest_chain(chains, cage)
@@ -40,6 +36,7 @@ class HangDriveCommand:
         else:
             x = self.CAGE_NOT_FOUND_SPEED
 
+        self.logger.info(x, y, rot, 0)
         return [x, y, rot, 0]
 
     def find_best_cage(self, cages: list[list]) -> list:
@@ -76,9 +73,11 @@ class HangDriveCommand:
         if not poles:
             return []
 
-        x_tol: float = self.clamp(cage[2] * self.POLE_TOLERANCE_PERCENTAGE, self.POLE_MINIMUM_TOLERANCE, self.POLE_MAXIMUM_TOLERANCE)
-        y_tol: float = self.clamp(cage[2] * cage[3] * self.POLE_TOLERANCE_PERCENTAGE, self.POLE_MINIMUM_TOLERANCE, self.POLE_MAXIMUM_TOLERANCE)
-        
+        x_tol: float = self.clamp(cage[2] * self.POLE_TOLERANCE_PERCENTAGE,
+                                  self.POLE_MINIMUM_TOLERANCE, self.POLE_MAXIMUM_TOLERANCE)
+        y_tol: float = self.clamp(cage[2] * cage[3] * self.POLE_TOLERANCE_PERCENTAGE,
+                                  self.POLE_MINIMUM_TOLERANCE, self.POLE_MAXIMUM_TOLERANCE)
+
         return [pole for pole in poles if abs(pole[0] - cage[0]) < cage[2] / 2 + x_tol and abs(pole[1] - cage[1]) < cage[3] / 2 + y_tol]
 
     def get_front_poles(self, poles: List[List[float]]) -> Tuple[List[float], List[float]]:
@@ -95,7 +94,8 @@ class HangDriveCommand:
         pole_size_difference = front_right_pole[2] - front_left_pole[2]
         normalized_difference = pole_size_difference / self.FRAME_WIDTH
 
-        strafe_amount = self.clamp(normalized_difference * 2, -self.POLE_STRAFING_MAXIMUM, self.POLE_STRAFING_MINIMUM)
+        strafe_amount = self.clamp(
+            normalized_difference * 2, -self.POLE_STRAFING_MAXIMUM, self.POLE_STRAFING_MINIMUM)
 
         return 0.0 if abs(strafe_amount) < self.POLE_STRAFING_MINIMUM else strafe_amount
 

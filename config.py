@@ -1,5 +1,7 @@
 from typing import Any, Dict, List
 
+###################################################################
+
 class DisplayConfig:
     """Configuration settings for video output."""
     WINDOW_TITLE: str = 'Output Video'
