@@ -4,11 +4,11 @@ import logging
 from typing import Optional, List
 from logs.logging_setup import setup_logger
 
-from config import DisplayConfig
+from config import *
 from networking.rio_communication import RoboRio
 from vision_tracking.video_display import VideoDisplay
 from vision_tracking.video_processor import FrameProcessor
-from decision_engine.autoalgae import DecisionMatrix
+from decision_engine.autoalgae import AlgaePickupCommand
 from decision_engine.trackable_objects import Algae, Cage, CagePole, Chain, Coral, Robot
 
 ###############################################################
@@ -19,7 +19,7 @@ def main() -> None:
     logger = logging.getLogger(file_name)
 
     roborio: RoboRio = RoboRio()
-    decision_matrix: DecisionMatrix = DecisionMatrix()
+    autoalgae: AlgaePickupCommand = AlgaePickupCommand()
     processor: FrameProcessor = FrameProcessor()
     cap: cv2.VideoCapture = cv2.VideoCapture(DisplayConfig.INPUT_VIDEO_PATH)
     
@@ -35,31 +35,37 @@ def main() -> None:
     try:
         print("Made connection to cap")
         while cap.isOpened():
-            roborio.get_data("placeholder")
-
             ret, frame = cap.read()
             if not ret:
                 logger.info("End of video stream.")
                 break
 
             frame = processor.transform_frame(frame)
-            
             processed_frame, game_pieces = processor.process_frame(frame)
-            
             processor.calculate_frame_rate()
+            
+            if not DebugConfig.TESTING:
+                task = roborio.get_data("task")
+            else:
+                task = DebugConfig.DEFAULT_TASK
 
-            algae: List[Algae] = game_pieces.get(Algae, [])
+            match task:
+                case "auto":
+                    algaes: List[Algae] = game_pieces.get(Algae, [])
 
-            best_algae: Optional[Algae] = decision_matrix.compute_best_game_piece(*algae)
+                    best_algae = autoalgae.compute_best_algae(algaes)
+                    x, y, rot, success = autoalgae.get_algae_navigation_command(best_algae)
 
-            if best_algae:
-                roborio.send_data((best_algae.distance, best_algae.angle))
+                    if success:
+                        logger.info(f'X: {x}, Y: {y}, ROT: {rot}')
+                        if not DebugConfig.TESTING:
+                            roborio.send_data(x, y, rot, success)
+                    else:
+                        logger.warning("Cannot Pathfind to Algae")
                 
             if DisplayConfig.SHOW_VIDEO:
-                if best_algae:
-                    VideoDisplay.draw_angle_line(frame, best_algae.angle)
                 VideoDisplay.show_frame(DisplayConfig.WINDOW_TITLE, processed_frame)
-                
+            
             if DisplayConfig.SAVE_VIDEO and out:
                 out.write(processed_frame)
 
@@ -71,7 +77,7 @@ def main() -> None:
             out.release()
             logger.info("Video file closed properly.")
         cv2.destroyAllWindows()
-        logger.shutdown()
+        logging.shutdown()
 
 ###############################################################
 

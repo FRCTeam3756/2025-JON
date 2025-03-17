@@ -17,13 +17,13 @@ class HangDriveCommand:
     def clamp(input: float, minimum: float, maximum: float) -> float:
         return max(min(input, maximum), minimum)
 
-    def return_robot_command(self, cages: List[List[float]], poles: List[List[float]], chains: List[List[float]]) -> List[float]:
+    def get_autohang_command(self, cages: List[List[float]], poles: List[List[float]], chains: List[List[float]]) -> Tuple[float, float, float, bool]:
         x, y, rot = 0.0, 0.0, 0.0
 
         cage: List[float] = self.find_best_cage(cages)
         if not cage:
             self.logger.warning("No cage found")
-            return [0.0, 0.0, 0.0, 1]
+            return [0.0, 0.0, 0.0, False]
 
         chain: List[float] = self.find_closest_chain(chains, cage)
         poles: List[List[float]] = self.get_valid_poles(cage, poles)
@@ -36,8 +36,8 @@ class HangDriveCommand:
         else:
             x = self.CAGE_NOT_FOUND_SPEED
 
-        self.logger.info(x, y, rot, 0)
-        return [x, y, rot, 0]
+        self.logger.info(x, y, rot, True)
+        return [x, y, rot, True]
 
     def find_best_cage(self, cages: list[list]) -> list:
         if not cages:
