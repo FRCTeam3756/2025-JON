@@ -1,2 +1,3 @@
 logs/
-test/
+test/input/*
+test/output/*
