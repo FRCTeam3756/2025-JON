@@ -1,14 +1,9 @@
 import math
+from config import CameraConfig
 
 class StereoVision:
-    def __init__(self):
-        self.inches_between_cameras = 36   # Dinches
-        self.frame_width = 640             # in pixels
-        self.frame_height = 640            # in pixels
-        self.focal_length = 2.75           # in mm
-        self.sensor_width = 4              # in mm
-        
-        self.focal_length_in_pixels = (self.frame_width / self.sensor_width) * self.focal_length
+    def __init__(self):        
+        self.focal_length_in_pixels = (CameraConfig.FRAME_WIDTH / CameraConfig.DIAGONAL_SENSOR_WIDTH) * CameraConfig.FOCAL_LENGTH
 
     def calculate_disparity(self, left_camera_box, right_camera_box):
         """Calculate disparity between the left and right camera boxes."""
@@ -21,12 +16,12 @@ class StereoVision:
         if disparity == 0:
             return float('inf')  # Return infinity if object is too far away
         
-        return (self.focal_length_in_pixels * self.inches_between_cameras) / disparity
+        return (self.focal_length_in_pixels * CameraConfig.INCHES_BETWEEN_STEREO_CAMERAS) / disparity
 
     def calculate_angle(self, left_camera_box, right_camera_box):
         """Calculate the angle of deviation from the center of the frame."""
         center_x = (left_camera_box[0] + right_camera_box[0]) / 2
-        deviation = center_x - (self.frame_width / 2)
+        deviation = center_x - (CameraConfig.FRAME_WIDTH / 2)
 
         if abs(deviation) < 1e-6:
             return 0.0

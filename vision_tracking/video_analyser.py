@@ -35,7 +35,6 @@ class YOLODetector:
         class_ids: List[int] = []
 
         for box in results.boxes:
-            # print(box.xywh.cpu()) // Add to JON
             x1, y1, x2, y2 = map(int, box.xyxy[0].cpu().numpy())
             confidence: float = float(box.conf[0])
 

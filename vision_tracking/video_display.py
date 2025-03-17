@@ -1,7 +1,8 @@
 import cv2
 import math
 import numpy as np
-from typing import List, Dict, Tuple
+from typing import List, Tuple
+from config import DisplayConfig
 
 class VideoDisplay:
     @staticmethod
@@ -10,11 +11,16 @@ class VideoDisplay:
         cv2.imshow(window_name, frame)
 
     @staticmethod
-    def annotate_frame(frame: np.ndarray, boxes: List[Tuple[int, int, int, int]], class_ids: List[int], label_colours: Dict[str, Tuple[int, int, int]]) -> np.ndarray:
+    def annotate_frame(frame: np.ndarray, boxes: List[Tuple[int, int, int, int]], class_ids: List[int], apriltags) -> np.ndarray:
         """Annotate the frame with bounding boxes and labels."""
+        
         for i, (x1, y1, x2, y2) in enumerate(boxes):
-            color = label_colours.get(str(class_ids[i]), (255, 255, 255))
+            color = DisplayConfig.LABEL_COLOURS.get(str(class_ids[i]), (255, 255, 255))
             cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
+
+        for apriltag in apriltags:
+            frame = VideoDisplay.draw_apriltag(frame, apriltag)
+
         return frame
 
     @staticmethod
@@ -27,3 +33,22 @@ class VideoDisplay:
         end_y = int(start_point[1] - length * math.cos(math.radians(angle)))
         
         cv2.line(frame, start_point, (end_x, end_y), (0, 155, 255), 2)
+
+    @staticmethod
+    def draw_apriltag(frame, detection):
+        """Draws the tag's bounding box, center, and ID on the frame."""
+        for i in range(4):
+            j = (i + 1) % 4
+            point1 = (int(detection.getCorner(i).x), int(detection.getCorner(i).y))
+            point2 = (int(detection.getCorner(j).x), int(detection.getCorner(j).y))
+            cv2.line(frame, point1, point2, (0, 255, 0), 2)
+
+        center_x = int(detection.getCenter().x)
+        center_y = int(detection.getCenter().y)
+
+        cv2.line(frame, (center_x - DisplayConfig.APRILTAG_CROSSHAIR_LINE_LENGTH, center_y), (center_x + DisplayConfig.APRILTAG_CROSSHAIR_LINE_LENGTH, center_y), (0, 0, 255), 2)
+        cv2.line(frame, (center_x, center_y - DisplayConfig.APRILTAG_CROSSHAIR_LINE_LENGTH), (center_x, center_y + DisplayConfig.APRILTAG_CROSSHAIR_LINE_LENGTH), (0, 0, 255), 2)
+
+        cv2.putText(frame, str(detection.getId()), (center_x + DisplayConfig.APRILTAG_CROSSHAIR_LINE_LENGTH, center_y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
+
+        return frame

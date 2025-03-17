@@ -9,12 +9,12 @@ import torch
 import torchvision
 import numpy as np
 
+from config import *
 from .video_analyser import YOLODetector
 from .video_display import VideoDisplay
-from config import LoggingConfig, DisplayConfig, YOLOConfig
+from apriltags.apriltag_finder import AprilTagFinder
 from decision_engine.trackable_objects import Algae, Cage, Coral, Robot
 from camera_calculations.mono_video import MonoVision
-from camera_calculations.stereo_video import StereoVision
 
 ###############################################################
 
@@ -27,10 +27,10 @@ class FrameProcessor:
 
         self.logger.info(
             f'Using device: {"GPU" if torch.cuda.is_available() else "CPU"}')
-        self.detector: YOLODetector = YOLODetector(
+        self.yolo_detector: YOLODetector = YOLODetector(
             YOLOConfig.WEIGHTS_LOCATION, YOLOConfig.CONFIDENCE_THRESHOLD)
-        self.property_calculation: MonoVision = MonoVision()
-        self.depth_estimation: StereoVision = StereoVision()
+        self.apriltag_detector: AprilTagFinder = AprilTagFinder()
+        self.camera: MonoVision = MonoVision()
         self.start_time: float = time.time()
         self.frame_count: int = 0
         self.game_pieces: Dict[Type[Union[Algae, Cage, Coral, Robot]], List] = {
@@ -49,7 +49,8 @@ class FrameProcessor:
 
     def process_frame(self, frame: np.ndarray) -> Tuple[np.ndarray, Dict[Type[Union[Algae, Cage, Coral, Robot]], List]]:
         """Processes a single frame for detections and annotations."""
-        boxes, confidences, class_ids = self.detector.detect(frame)
+        boxes, confidences, class_ids = self.yolo_detector.detect(frame)
+        apriltags = self.apriltag_detector.find_apriltags(frame)
 
         if boxes.size > 0:
             indices = self.apply_nms(boxes, confidences)
@@ -58,11 +59,11 @@ class FrameProcessor:
                 indices], confidences[indices], class_ids[indices]
 
             frame = VideoDisplay.annotate_frame(
-                frame, boxes_filtered, class_ids_filtered, DisplayConfig.LABEL_COLOURS)
+                frame, boxes_filtered, class_ids_filtered, apriltags)
             self.update_game_pieces(
                 boxes_filtered, confidences_filtered, class_ids_filtered)
 
-        return frame, self.game_pieces
+        return frame, self.game_pieces, apriltags
 
     def extract_features(self, box: List[int]) -> Tuple[int, int, float, float]:
         """Extract common object features."""
@@ -88,8 +89,8 @@ class FrameProcessor:
                     algae.update_frame_location(
                         center_x, center_y, scale, ratio, time.time())
                     algae.update_confidence(conf)
-                    distance, angle = self.property_calculation.find_distance_and_angle(
-                        center_x, scale)
+                    distance, angle = self.camera.find_distance_and_angle(
+                        center_x, AutoAlgaeConfig.ALGAE_SIZE_IN_MM, scale)
                     algae.update_relative_location(distance, angle)
                     self.game_pieces[Algae].append(algae)
 
@@ -101,8 +102,8 @@ class FrameProcessor:
                     cage.update_frame_location(
                         center_x, center_y, scale, ratio, time.time())
                     cage.update_confidence(conf)
-                    distance, angle = self.property_calculation.find_distance_and_angle(
-                        center_x, scale)
+                    distance, angle = self.camera.find_distance_and_angle(
+                        center_x, AutoHangConfig.CAGE_WIDTH_IN_MM, scale)
                     cage.update_relative_location(distance, angle)
                     self.game_pieces[Cage].append(cage)
 
@@ -114,8 +115,8 @@ class FrameProcessor:
                     coral.update_frame_location(
                         center_x, center_y, scale, ratio, time.time())
                     coral.update_confidence(conf)
-                    distance, angle = self.property_calculation.find_distance_and_angle(
-                        center_x, scale)
+                    distance, angle = self.camera.find_distance_and_angle(
+                        center_x, AutoCoralConfig.CORAL_SIZE_IN_MM, scale)
                     coral.update_relative_location(distance, angle)
                     self.game_pieces[Coral].append(coral)
 
@@ -127,8 +128,8 @@ class FrameProcessor:
                     robot.update_frame_location(
                         center_x, center_y, scale, ratio, time.time())
                     robot.update_confidence(conf)
-                    distance, angle = self.property_calculation.find_distance_and_angle(
-                        center_x, scale)
+                    distance, angle = self.camera.find_distance_and_angle(
+                        center_x, AutoRobotConfig.AVERAGE_ROBOT_SIZE_IN_MM, scale)
                     robot.update_relative_location(distance, angle)
                     self.game_pieces[Robot].append(robot)
 
@@ -140,12 +141,12 @@ class FrameProcessor:
             return np.array([])
 
         boxes_tensor = torch.tensor(
-            boxes, dtype=torch.float32, device=self.detector.device)
+            boxes, dtype=torch.float32, device=self.yolo_detector.device)
         confidences_tensor = torch.tensor(
-            confidences, dtype=torch.float32, device=self.detector.device)
+            confidences, dtype=torch.float32, device=self.yolo_detector.device)
 
-        indices = torchvision.ops.nms(boxes_tensor.to(self.detector.device), confidences_tensor.to(
-            self.detector.device), YOLOConfig.IOU_THRESHOLD)
+        indices = torchvision.ops.nms(boxes_tensor.to(self.yolo_detector.device), confidences_tensor.to(
+            self.yolo_detector.device), YOLOConfig.IOU_THRESHOLD)
         return indices.cpu().numpy()
 
     def calculate_frame_rate(self) -> None:

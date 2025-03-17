@@ -8,23 +8,30 @@ class DebugConfig:
     DEFAULT_TASK: str = "auto"
     LOG_LEVEL: int = logging.DEBUG
 
+class CameraConfig:     # Logitech C920
+    HORIZONTAL_FOV: float = 59.6    # in degrees
+    FOCAL_LENGTH: float = 3.725     # in mm
+    FRAME_WIDTH: int = 640
+    FRAME_HEIGHT: int = 640
+    DIAGONAL_SENSOR_WIDTH: float = 6              # in mm
+    INCHES_BETWEEN_STEREO_CAMERAS: float = 0.0   # in inches
+
 class DisplayConfig:
     """Configuration settings for video output."""
     WINDOW_TITLE: str = 'Output Video'
     SHOW_VIDEO: bool = True
     SAVE_VIDEO: bool = True
-    FRAME_WIDTH: int = 640
-    FRAME_HEIGHT: int = 640
     ROTATE_IMAGE: bool = False
     FLIP_IMAGE_HORIZONTALLY: bool = False
     FLIP_IMAGE_VERTICALLY: bool = False
     INPUT_VIDEO_PATH: Any = "test/input/video3.mp4" #"http://limelight.local:5800" #0 #
     OUTPUT_VIDEO_PATH: str = 'test/output/output.mp4'
+    APRILTAG_CROSSHAIR_LINE_LENGTH = 10
     LABEL_COLOURS: Dict[str, List[int]] = {
         "0": [85, 186, 151],    # Algae
         "1": [0, 0, 0],         # Cage
         "4": [255, 255, 255],   # Coral
-        "5": [255, 0, 0],   # Robot
+        "5": [255, 0, 0],       # Robot
     }
 
 class YOLOConfig:
@@ -32,11 +39,17 @@ class YOLOConfig:
     CONFIDENCE_THRESHOLD: float = 0.7
     WEIGHTS_LOCATION: str = 'vision_tracking/weights/best.onnx'
 
+class AprilTagConfig:
+    APRILTAG_SIZE_IN_INCHES = 9
+    APRILTAG_SIZE_IN_CM = APRILTAG_SIZE_IN_INCHES * 2.54
+
 class SelfDrivingConfig:
     MAX_SELF_DRIVING_SPEED = 1.0
     MAX_SELF_DRIVING_ROTATIONAL_RATE = 1 / 180.0
 
 class AutoAlgaeConfig:
+    ALGAE_SIZE_IN_MM: float = 413
+    
     ALGAE_CONFIDENCE_WEIGHT: float = 1.0
     ALGAE_DISTANCE_WEIGHT: float = 1.0
     ALGAE_ANGULAR_WEIGHT: float = 1.0
@@ -44,10 +57,18 @@ class AutoAlgaeConfig:
     ALGAE_DESIRED_DISTANCE = 10.0 
     ALGAE_MAX_DISTANCE = 120.0
 
+class AutoCoralConfig:
+    CORAL_SIZE_IN_MM: float = 11
+
+class AutoRobotConfig:
+    AVERAGE_ROBOT_SIZE_IN_MM: float = 711
+
 class AutoHangConfig:
+    CAGE_WIDTH_IN_MM: float = 190
+
     POLE_TOLERANCE_PERCENTAGE: float = 0.125
-    POLE_MINIMUM_TOLERANCE: int = DisplayConfig.FRAME_WIDTH // 100
-    POLE_MAXIMUM_TOLERANCE: int = DisplayConfig.FRAME_WIDTH // 10
+    POLE_MINIMUM_TOLERANCE: int = CameraConfig.FRAME_WIDTH // 100
+    POLE_MAXIMUM_TOLERANCE: int = CameraConfig.FRAME_WIDTH // 10
     POLE_STRAFING_MINIMUM: float = 0.05
     POLE_STRAFING_MAXIMUM: float = 0.4
 

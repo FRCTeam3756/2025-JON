@@ -9,7 +9,7 @@ from networking.rio_communication import RoboRio
 from vision_tracking.video_display import VideoDisplay
 from vision_tracking.video_processor import FrameProcessor
 from decision_engine.autoalgae import AlgaePickupCommand
-from decision_engine.trackable_objects import Algae, Cage, Coral, Robot
+from decision_engine.trackable_objects import *
 
 ###############################################################
 
@@ -30,10 +30,10 @@ def main() -> None:
     out: Optional[cv2.VideoWriter] = None
     if DisplayConfig.SAVE_VIDEO:
         fourcc: int = cv2.VideoWriter_fourcc(*'mp4v')
-        out = cv2.VideoWriter(DisplayConfig.OUTPUT_VIDEO_PATH, fourcc, 30.0, (DisplayConfig.FRAME_WIDTH, DisplayConfig.FRAME_HEIGHT))
+        out = cv2.VideoWriter(DisplayConfig.OUTPUT_VIDEO_PATH, fourcc, 30.0, (CameraConfig.FRAME_WIDTH, CameraConfig.FRAME_HEIGHT))
     
     try:
-        print("Made connection to cap")
+        logging.info("Made connection to cap")
         while cap.isOpened():
             ret, frame = cap.read()
             if not ret:
@@ -41,7 +41,7 @@ def main() -> None:
                 break
 
             frame = processor.transform_frame(frame)
-            processed_frame, game_pieces = processor.process_frame(frame)
+            processed_frame, game_pieces, apriltags = processor.process_frame(frame)
             processor.calculate_frame_rate()
             
             if not DebugConfig.TESTING:
