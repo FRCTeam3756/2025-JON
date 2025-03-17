@@ -9,7 +9,7 @@ from networking.rio_communication import RoboRio
 from vision_tracking.video_display import VideoDisplay
 from vision_tracking.video_processor import FrameProcessor
 from decision_engine.autoalgae import AlgaePickupCommand
-from decision_engine.trackable_objects import Algae, Cage, CagePole, Chain, Coral, Robot
+from decision_engine.trackable_objects import Algae, Cage, Coral, Robot
 
 ###############################################################
 

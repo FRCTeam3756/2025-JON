@@ -23,10 +23,8 @@ class DisplayConfig:
     LABEL_COLOURS: Dict[str, List[int]] = {
         "0": [85, 186, 151],    # Algae
         "1": [0, 0, 0],         # Cage
-        "2": [0, 0, 255],       # Cage Pole
-        "3": [149, 149, 149],   # Chain
         "4": [255, 255, 255],   # Coral
-        "5": [121, 217, 255],   # Robot
+        "5": [255, 0, 0],   # Robot
     }
 
 class YOLOConfig:

@@ -31,16 +31,6 @@ class Cage(Object):
     """The class that holds all the characteristics of a Cage"""
     def __init__(self):
         super().__init__()
-    
-class CagePole(Object):
-    """The class that holds all the characteristics of a Cage Pole"""
-    def __init__(self):
-        super().__init__()
-
-class Chain(Object):
-    """The class that holds all the characteristics of a Cage"""
-    def __init__(self):
-        super().__init__()
 
 class Coral(Object):
     """The class that holds all the characteristics of a Coral"""

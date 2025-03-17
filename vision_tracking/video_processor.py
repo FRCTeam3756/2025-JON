@@ -12,7 +12,7 @@ import numpy as np
 from .video_analyser import YOLODetector
 from .video_display import VideoDisplay
 from config import LoggingConfig, DisplayConfig, YOLOConfig
-from decision_engine.trackable_objects import Algae, Cage, CagePole, Chain, Coral, Robot
+from decision_engine.trackable_objects import Algae, Cage, Coral, Robot
 from camera_calculations.mono_video import MonoVision
 from camera_calculations.stereo_video import StereoVision
 
@@ -33,8 +33,8 @@ class FrameProcessor:
         self.depth_estimation: StereoVision = StereoVision()
         self.start_time: float = time.time()
         self.frame_count: int = 0
-        self.game_pieces: Dict[Type[Union[Algae, Cage, CagePole, Chain, Coral, Robot]], List] = {
-            obj: [] for obj in (Algae, Cage, CagePole, Chain, Coral, Robot)
+        self.game_pieces: Dict[Type[Union[Algae, Cage, Coral, Robot]], List] = {
+            obj: [] for obj in (Algae, Cage, Coral, Robot)
         }
 
     def transform_frame(self, frame: np.ndarray) -> np.ndarray:
@@ -47,7 +47,7 @@ class FrameProcessor:
 
         return frame
 
-    def process_frame(self, frame: np.ndarray) -> Tuple[np.ndarray, Dict[Type[Union[Algae, Cage, CagePole, Chain, Coral, Robot]], List]]:
+    def process_frame(self, frame: np.ndarray) -> Tuple[np.ndarray, Dict[Type[Union[Algae, Cage, Coral, Robot]], List]]:
         """Processes a single frame for detections and annotations."""
         boxes, confidences, class_ids = self.detector.detect(frame)
 
@@ -106,33 +106,7 @@ class FrameProcessor:
                     cage.update_relative_location(distance, angle)
                     self.game_pieces[Cage].append(cage)
 
-                case 2:  # Cage Pole
-                    center_x, center_y, scale, ratio = self.extract_features(
-                        box)
-
-                    cage_pole = CagePole()
-                    cage_pole.update_frame_location(
-                        center_x, center_y, scale, ratio, time.time())
-                    cage_pole.update_confidence(conf)
-                    distance, angle = self.property_calculation.find_distance_and_angle(
-                        center_x, scale)
-                    cage_pole.update_relative_location(distance, angle)
-                    self.game_pieces[CagePole].append(cage_pole)
-
-                case 3:  # Chain
-                    center_x, center_y, scale, ratio = self.extract_features(
-                        box)
-
-                    chain = Chain()
-                    chain.update_frame_location(
-                        center_x, center_y, scale, ratio, time.time())
-                    chain.update_confidence(conf)
-                    distance, angle = self.property_calculation.find_distance_and_angle(
-                        center_x, scale)
-                    chain.update_relative_location(distance, angle)
-                    self.game_pieces[Chain].append(chain)
-
-                case 4:  # Coral
+                case 2:  # Coral
                     center_x, center_y, scale, ratio = self.extract_features(
                         box)
 
@@ -145,7 +119,7 @@ class FrameProcessor:
                     coral.update_relative_location(distance, angle)
                     self.game_pieces[Coral].append(coral)
 
-                case 5:  # Robot
+                case 3:  # Robot
                     center_x, center_y, scale, ratio = self.extract_features(
                         box)
 
@@ -157,6 +131,7 @@ class FrameProcessor:
                         center_x, scale)
                     robot.update_relative_location(distance, angle)
                     self.game_pieces[Robot].append(robot)
+
                 case _: continue
 
     def apply_nms(self, boxes: np.ndarray, confidences: np.ndarray) -> np.ndarray:
