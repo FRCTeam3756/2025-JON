@@ -30,7 +30,7 @@ class HangDriveCommand:
             x = self.get_driving_speed(cage)
             rot = self.get_rotation_amount(cage)
         else:
-            x = self.CAGE_NOT_FOUND_SPEED
+            x = AutoHangConfig.CAGE_NOT_FOUND_SPEED
 
         self.logger.info(x, y, rot, True)
         return [x, y, rot, True]
