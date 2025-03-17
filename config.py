@@ -1,3 +1,4 @@
+import logging
 from typing import Any, Dict, List
 
 ###################################################################
@@ -5,6 +6,7 @@ from typing import Any, Dict, List
 class DebugConfig:
     TESTING: bool = True
     DEFAULT_TASK: str = "auto"
+    LOG_LEVEL: int = logging.DEBUG
 
 class DisplayConfig:
     """Configuration settings for video output."""

@@ -1,7 +1,5 @@
 import math
 
-RECENT_TIME_THRESHOLD = 0.5
-
 class Object:
     """The abstract class for all vision tracked objects"""
     def __init__(self):
@@ -89,4 +87,4 @@ class Robot(Object):
         return None, None
     
     def is_data_recent(self, current_time):
-        return (current_time - self.timestamp) <= RECENT_TIME_THRESHOLD if self.timestamp is not None else False
+        return (current_time - self.timestamp) <= 1 if self.timestamp is not None else False
