@@ -15,8 +15,7 @@ from decision_engine.trackable_objects import *
 
 def main() -> None:
     file_name = os.path.splitext(os.path.basename(__file__))[0]
-    setup_logger(file_name)
-    logger = logging.getLogger(file_name)
+    logger = setup_logger(file_name)
 
     roborio: RoboRio = RoboRio()
     autoalgae: AlgaePickupCommand = AlgaePickupCommand()

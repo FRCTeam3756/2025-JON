@@ -6,7 +6,6 @@ from typing import Any, Dict, List
 class DebugConfig:
     TESTING: bool = True
     DEFAULT_TASK: str = "auto"
-    LOG_LEVEL: int = logging.DEBUG
 
 class CameraConfig:     # Logitech C920
     HORIZONTAL_FOV: float = 59.6    # in degrees
@@ -24,7 +23,7 @@ class DisplayConfig:
     ROTATE_IMAGE: bool = False
     FLIP_IMAGE_HORIZONTALLY: bool = False
     FLIP_IMAGE_VERTICALLY: bool = False
-    INPUT_VIDEO_PATH: Any = "test/input/video3.mp4" #"http://limelight.local:5800" #0 #
+    INPUT_VIDEO_PATH: Any = 0 #"test/input/video3.mp4" #"http://limelight.local:5800" #
     OUTPUT_VIDEO_PATH: str = 'test/output/output.mp4'
     APRILTAG_CROSSHAIR_LINE_LENGTH = 10
     LABEL_COLOURS: Dict[str, List[int]] = {
@@ -78,6 +77,7 @@ class AutoHangConfig:
 
 class LoggingConfig:
     FPS_LOGGING_RATE: int = 200
+    LOG_LEVEL: int = logging.DEBUG
 
 class NetworkingConfig:
     ROBOT_IP_ADDRESS: str = "10.37.56.2"
