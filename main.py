@@ -99,7 +99,8 @@ def main() -> None:
                         x, y, rot, success = autoalgae.get_algae_navigation_command(best_algae)
 
                         if success:
-                            VideoDisplay.draw_angle_line(frame, best_algae.)
+                            angle_to_algae = MonoVision.get_angle_to_object_in_degrees(best_algae.x)
+                            VideoDisplay.draw_angle_line(frame, angle_to_algae)
                             logger.info(f'Target Movement -  X: {x}, Y: {y}, ROT: {rot}')
                             if not DebugConfig.TESTING:
                                 roborio.send_data(x, y, rot, success)
@@ -107,9 +108,9 @@ def main() -> None:
                             logger.warning("Cannot Pathfind to Algae")
                     elif current_key == "2" and processor_apriltag:
                         x, y, rot, success = autoprocessor.get_processor_navigation_command(processor_apriltag)
-                        angle_to_processor = MonoVision.get_angle_to_object_in_degrees(processor_apriltag.getCenter().x)
 
                         if success:
+                            angle_to_processor = MonoVision.get_angle_to_object_in_degrees(processor_apriltag.getCenter().x)
                             VideoDisplay.draw_angle_line(frame, angle_to_processor)
                             logger.info(f'Target Movement -  X: {x}, Y: {y}, ROT: {rot}')
                             if not DebugConfig.TESTING:
