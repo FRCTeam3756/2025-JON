@@ -21,8 +21,8 @@ class AlgaePickupCommand:
             self.logger.warning("No algae found")
             return [0.0, 0.0, 0.0, False]
         
-        if algae.distance > AutoAlgaeConfig.ALGAE_DESIRED_DISTANCE:
-            speed_percent = min((algae.distance - AutoAlgaeConfig.ALGAE_DESIRED_DISTANCE) / (AutoAlgaeConfig.ALGAE_MAX_DISTANCE - AutoAlgaeConfig.ALGAE_DESIRED_DISTANCE) * 100, 100)
+        if algae.distance > AutoAlgaeConfig.ALGAE_DESIRED_DISTANCE_IN_MM:
+            speed_percent = min((algae.distance - AutoAlgaeConfig.ALGAE_DESIRED_DISTANCE_IN_MM) / (AutoAlgaeConfig.ALGAE_MAX_DISTANCE_IN_MM - AutoAlgaeConfig.ALGAE_DESIRED_DISTANCE_IN_MM) * 100, 100)
         else:
             speed_percent = 0.0
 

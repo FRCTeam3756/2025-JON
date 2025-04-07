@@ -30,7 +30,6 @@ class FrameProcessor:
         self.yolo_detector: YOLODetector = YOLODetector(
             YOLOConfig.WEIGHTS_LOCATION, YOLOConfig.CONFIDENCE_THRESHOLD)
         self.apriltag_detector: AprilTagFinder = AprilTagFinder()
-        self.camera: MonoVision = MonoVision()
         self.start_time: float = time.time()
         self.frame_count: int = 0
         self.game_pieces: Dict[Type[Union[Algae, Cage, Coral, Robot]], List] = {
@@ -66,7 +65,7 @@ class FrameProcessor:
         return frame, self.game_pieces, apriltags
 
     def extract_features(self, box: List[int]) -> Tuple[int, int, float, float]:
-        """Extract common object features."""
+        """Extract object features."""
         x1, y1, x2, y2 = box
         center_x: int = (x1 + x2) // 2
         center_y: int = (y1 + y2) // 2
@@ -89,7 +88,7 @@ class FrameProcessor:
                     algae.update_frame_location(
                         center_x, center_y, scale, ratio, time.time())
                     algae.update_confidence(conf)
-                    distance, angle = self.camera.find_distance_and_angle(
+                    distance, angle = MonoVision.find_distance_and_angle(
                         center_x, AutoAlgaeConfig.ALGAE_SIZE_IN_MM, scale)
                     algae.update_relative_location(distance, angle)
                     self.game_pieces[Algae].append(algae)
@@ -102,7 +101,7 @@ class FrameProcessor:
                     cage.update_frame_location(
                         center_x, center_y, scale, ratio, time.time())
                     cage.update_confidence(conf)
-                    distance, angle = self.camera.find_distance_and_angle(
+                    distance, angle = MonoVision.find_distance_and_angle(
                         center_x, AutoHangConfig.CAGE_WIDTH_IN_MM, scale)
                     cage.update_relative_location(distance, angle)
                     self.game_pieces[Cage].append(cage)
@@ -115,7 +114,7 @@ class FrameProcessor:
                     coral.update_frame_location(
                         center_x, center_y, scale, ratio, time.time())
                     coral.update_confidence(conf)
-                    distance, angle = self.camera.find_distance_and_angle(
+                    distance, angle = MonoVision.find_distance_and_angle(
                         center_x, AutoCoralConfig.CORAL_SIZE_IN_MM, scale)
                     coral.update_relative_location(distance, angle)
                     self.game_pieces[Coral].append(coral)
@@ -128,7 +127,7 @@ class FrameProcessor:
                     robot.update_frame_location(
                         center_x, center_y, scale, ratio, time.time())
                     robot.update_confidence(conf)
-                    distance, angle = self.camera.find_distance_and_angle(
+                    distance, angle = MonoVision.find_distance_and_angle(
                         center_x, AutoRobotConfig.AVERAGE_ROBOT_SIZE_IN_MM, scale)
                     robot.update_relative_location(distance, angle)
                     self.game_pieces[Robot].append(robot)

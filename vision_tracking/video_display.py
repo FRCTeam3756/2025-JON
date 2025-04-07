@@ -13,7 +13,6 @@ class VideoDisplay:
     @staticmethod
     def annotate_frame(frame: np.ndarray, boxes: List[Tuple[int, int, int, int]], class_ids: List[int], apriltags) -> np.ndarray:
         """Annotate the frame with bounding boxes and labels."""
-        
         for i, (x1, y1, x2, y2) in enumerate(boxes):
             color = DisplayConfig.LABEL_COLOURS.get(str(class_ids[i]), (255, 255, 255))
             cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
@@ -22,6 +21,12 @@ class VideoDisplay:
             frame = VideoDisplay.draw_apriltag(frame, apriltag)
 
         return frame
+    
+    @staticmethod
+    def insert_text_onto_frame(frame: np.ndarray, messages: List[str]) -> np.ndarray:
+        """Annotate the frane with text"""
+        for i, message in enumerate(messages):
+            cv2.putText(frame, message, (10, (30 + (i * 50))), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 0), 2)
 
     @staticmethod
     def draw_angle_line(frame: np.ndarray, angle: float) -> None:
@@ -29,8 +34,8 @@ class VideoDisplay:
         height, width = frame.shape[:2]
         start_point = (width // 2, height - 1)
         length = 100
-        end_x = int(start_point[0] + length * math.sin(math.radians(angle)))
-        end_y = int(start_point[1] - length * math.cos(math.radians(angle)))
+        end_x = int(start_point[0] + (length * math.sin(math.radians(angle))))
+        end_y = int(start_point[1] - (length * math.cos(math.radians(angle))))
         
         cv2.line(frame, start_point, (end_x, end_y), (0, 155, 255), 2)
 

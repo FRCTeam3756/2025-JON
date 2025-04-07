@@ -5,7 +5,9 @@ from typing import Any, Dict, List
 
 class DebugConfig:
     TESTING: bool = True
-    DEFAULT_TASK: str = "auto"
+    DEFAULT_TASK: str = "test"
+    DEFAULT_KEY: str = "1"
+    TASK_KEYS: List = ["1", "2"]
 
 class CameraConfig:     # Logitech C920
     HORIZONTAL_FOV: float = 59.6    # in degrees
@@ -46,6 +48,10 @@ class SelfDrivingConfig:
     MAX_SELF_DRIVING_SPEED = 1.0
     MAX_SELF_DRIVING_ROTATIONAL_RATE = 1 / 180.0
 
+class AutoProcessorConfig:
+    PROCESSOR_DESIRED_DISTANCE_IN_MM = 5.0 
+    PROCESSOR_MAX_DISTANCE_IN_MM = 120.0
+
 class AutoAlgaeConfig:
     ALGAE_SIZE_IN_MM: float = 413
     
@@ -53,8 +59,8 @@ class AutoAlgaeConfig:
     ALGAE_DISTANCE_WEIGHT: float = 1.0
     ALGAE_ANGULAR_WEIGHT: float = 1.0
 
-    ALGAE_DESIRED_DISTANCE = 10.0 
-    ALGAE_MAX_DISTANCE = 120.0
+    ALGAE_DESIRED_DISTANCE_IN_MM = 10.0 
+    ALGAE_MAX_DISTANCE_IN_MM = 120.0
 
 class AutoCoralConfig:
     CORAL_SIZE_IN_MM: float = 11
