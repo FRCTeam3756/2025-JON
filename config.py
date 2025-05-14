@@ -38,7 +38,7 @@ class DisplayConfig:
 class YOLOConfig:
     IOU_THRESHOLD: float = 0.4
     CONFIDENCE_THRESHOLD: float = 0.7
-    WEIGHTS_LOCATION: str = 'vision_tracking/weights/best.engine'
+    WEIGHTS_LOCATION: str = 'vision_tracking/weights/best.onnx'
 
 class AprilTagConfig:
     APRILTAG_SIZE_IN_INCHES = 9
@@ -51,6 +51,10 @@ class SelfDrivingConfig:
 class AutoProcessorConfig:
     PROCESSOR_DESIRED_DISTANCE_IN_MM = 5.0 
     PROCESSOR_MAX_DISTANCE_IN_MM = 120.0
+
+class AutoReefConfig:
+    REEF_DESIRED_DISTANCE_IN_MM = 5.0 
+    REEF_MAX_DISTANCE_IN_MM = 120.0
 
 class AutoAlgaeConfig:
     ALGAE_SIZE_IN_MM: float = 413
