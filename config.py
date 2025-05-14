@@ -25,7 +25,7 @@ class DisplayConfig:
     ROTATE_IMAGE: bool = False
     FLIP_IMAGE_HORIZONTALLY: bool = False
     FLIP_IMAGE_VERTICALLY: bool = False
-    INPUT_VIDEO_PATH: Any = 0 #"test/input/video3.mp4" #"http://limelight.local:5800" #
+    INPUT_VIDEO_PATH: Any = "video.mp4" #"test/input/video3.mp4" #"http://limelight.local:5800" #
     OUTPUT_VIDEO_PATH: str = 'test/output/output.mp4'
     APRILTAG_CROSSHAIR_LINE_LENGTH = 10
     LABEL_COLOURS: Dict[str, List[int]] = {
@@ -38,7 +38,7 @@ class DisplayConfig:
 class YOLOConfig:
     IOU_THRESHOLD: float = 0.4
     CONFIDENCE_THRESHOLD: float = 0.7
-    WEIGHTS_LOCATION: str = 'vision_tracking/weights/best.onnx'
+    WEIGHTS_LOCATION: str = 'vision_tracking/weights/best.engine'
 
 class AprilTagConfig:
     APRILTAG_SIZE_IN_INCHES = 9

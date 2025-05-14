@@ -1,6 +1,7 @@
 __pycache__/
 *.py[cod]
 
+video.mp4
 logs/files/*
 test/input/*
 test/output/*\
