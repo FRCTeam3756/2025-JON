@@ -1,15 +1,16 @@
 import math
+from typing import Optional
 
 class Object:
     """The abstract class for all vision tracked objects"""
     def __init__(self):
-        self.x = None
-        self.y = None
-        self.scale = None
-        self.ratio = None
-        self.confidence = None
-        self.distance = None
-        self.angle = None
+        self.x: Optional[int] = None
+        self.y: Optional[int] = None
+        self.scale: Optional[float] = None
+        self.ratio: Optional[float] = None
+        self.confidence: Optional[float] = None
+        self.distance_in_mm: Optional[float] = None
+        self.angle_in_degrees: Optional[float] = None
         self.timestamp = None
     
     def update_frame_location(self, x, y, s, r, timestamp):
@@ -18,9 +19,9 @@ class Object:
     def update_confidence(self, conf):
         self.confidence = conf
     
-    def update_relative_location(self, distance, angle):
-        self.distance = distance
-        self.angle = angle
+    def update_relative_location(self, distance_in_mm, angle_in_degrees):
+        self.distance_in_mm = distance_in_mm
+        self.angle_in_degrees = angle_in_degrees
 
 class Algae(Object):
     """The class that holds all the characteristics of an Algae"""

@@ -20,7 +20,7 @@ class ProcessorScoringCommand:
     def get_processor_navigation_command(self, processor_apriltag: AprilTagDetection) -> Tuple[float, float, float, bool]:
         if not processor_apriltag:
             self.logger.warning("Processor not found")
-            return [0.0, 0.0, 0.0, False]
+            return (0.0, 0.0, 0.0, False)
         
         distance_to_apriltag = AprilTagFinder.estimate_distance(processor_apriltag)
         angular_diviation = AprilTagFinder.calculate_anglular_diviation(processor_apriltag)
@@ -37,4 +37,4 @@ class ProcessorScoringCommand:
         rot = max(min(processor_apriltag.angle / 180 * 100, 100), -100)
 
         self.logger.info(f"Processor navigation command: x={x:.1f}%, y={y:.1f}%, rot={rot:.1f}%")
-        return [x, y, rot, True]
+        return (x, y, rot, True)

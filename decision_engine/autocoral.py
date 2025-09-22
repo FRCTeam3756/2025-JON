@@ -1,6 +1,5 @@
 import os
-import logging
-from typing import Tuple
+from typing import Optional, Tuple
 from logs.logging_setup import setup_logger
 
 from config import AutoCoralConfig
@@ -18,26 +17,33 @@ class CoralPickupCommand:
     def get_coral_navigation_command(self, coral: Coral) -> Tuple[float, float, float, bool]:
         if not coral:
             self.logger.warning("No coral found")
-            return [0.0, 0.0, 0.0, False]
+            return (0.0, 0.0, 0.0, False)
         
-        if coral.distance > AutoCoralConfig.CORAL_DESIRED_DISTANCE_IN_MM:
-            speed_percent = min((coral.distance - AutoCoralConfig.CORAL_DESIRED_DISTANCE_IN_MM) / (AutoCoralConfig.CORAL_MAX_DISTANCE_IN_MM - AutoCoralConfig.CORAL_DESIRED_DISTANCE_IN_MM) * 100, 100)
+        speed_percent: Optional[float] = 0.0
+        x: Optional[float] = 0.0
+        y: Optional[float] = 0.0
+        rot: Optional[float] = 0.0
+        
+        if coral.distance_in_mm and coral.distance_in_mm > AutoCoralConfig.CORAL_DESIRED_DISTANCE_IN_MM:
+            speed_percent = min((coral.distance_in_mm - AutoCoralConfig.CORAL_DESIRED_DISTANCE_IN_MM) / (AutoCoralConfig.CORAL_MAX_DISTANCE_IN_MM - AutoCoralConfig.CORAL_DESIRED_DISTANCE_IN_MM) * 100, 100)
         else:
-            speed_percent = 0.0
+            speed_percent = None
 
-        angle_rad = math.radians(coral.angle)
-        x = speed_percent * math.cos(angle_rad)
-        y = speed_percent * math.sin(angle_rad)
+        if coral.angle_in_degrees:
+            angle_rad = math.radians(coral.angle_in_degrees)
+            rot = max(min(coral.angle_in_degrees / 180 * 100, 100), -100)
 
-        rot = max(min(coral.angle / 180 * 100, 100), -100)
+            if speed_percent:
+                x = speed_percent * math.cos(angle_rad)
+                y = speed_percent * math.sin(angle_rad)
 
         self.logger.info(f"Coral navigation command: x={x:.1f}%, y={y:.1f}%, rot={rot:.1f}%")
-        return [x, y, rot, True]
+        return (x, y, rot, True)
 
-    def compute_best_coral(self, *corals: Coral) -> Coral:
+    def compute_best_coral(self, *corals: Coral) -> Optional[Coral]:
         """Compute the best game piece based on weighted attributes."""
         if not corals:
-            return
+            return None
 
         best_piece = None
 
@@ -48,7 +54,7 @@ class CoralPickupCommand:
 
         return best_piece
 
-    def validate_coral(self, coral: Coral) -> Coral:
+    def validate_coral(self, coral: Coral) -> bool:
         """Check if a game piece has all required attributes."""
         missing_attributes = [attr for attr in self.REQUIRED_ATTRIBUTES if getattr(
             coral, attr, None) is None]

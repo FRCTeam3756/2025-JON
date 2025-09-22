@@ -42,7 +42,7 @@ def main() -> None:
                               (CameraConfig.FRAME_WIDTH, CameraConfig.FRAME_HEIGHT), True)
 
     if DebugConfig.TESTING:
-        current_key: str = None
+        current_key: Optional[str] = None
 
     messages: List = []
     

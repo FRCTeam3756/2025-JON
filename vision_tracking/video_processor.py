@@ -79,56 +79,46 @@ class FrameProcessor:
             self.game_pieces[key] = []
 
         for box, conf, class_id in zip(boxes, confidences, class_ids):
+            center_x, center_y, scale, ratio = self.extract_features(box)
+            
             match class_id:
                 case 0:  # Algae
-                    center_x, center_y, scale, ratio = self.extract_features(
-                        box)
-
                     algae = Algae()
                     algae.update_frame_location(
                         center_x, center_y, scale, ratio, time.time())
                     algae.update_confidence(conf)
-                    distance, angle = MonoVision.find_distance_and_angle(
-                        center_x, AutoAlgaeConfig.ALGAE_SIZE_IN_MM, scale)
+                    distance = MonoVision.get_distance_to_object_in_mm(AutoAlgaeConfig.ALGAE_SIZE_IN_MM, scale)
+                    angle = MonoVision.get_angle_to_object_in_degrees(center_x)
                     algae.update_relative_location(distance, angle)
                     self.game_pieces[Algae].append(algae)
 
                 case 1:  # Cage
-                    center_x, center_y, scale, ratio = self.extract_features(
-                        box)
-
                     cage = Cage()
                     cage.update_frame_location(
                         center_x, center_y, scale, ratio, time.time())
                     cage.update_confidence(conf)
-                    distance, angle = MonoVision.find_distance_and_angle(
-                        center_x, AutoHangConfig.CAGE_WIDTH_IN_MM, scale)
+                    distance = MonoVision.get_distance_to_object_in_mm(AutoHangConfig.CAGE_WIDTH_IN_MM, scale)
+                    angle = MonoVision.get_angle_to_object_in_degrees(center_x)
                     cage.update_relative_location(distance, angle)
                     self.game_pieces[Cage].append(cage)
 
                 case 2:  # Coral
-                    center_x, center_y, scale, ratio = self.extract_features(
-                        box)
-
                     coral = Coral()
                     coral.update_frame_location(
                         center_x, center_y, scale, ratio, time.time())
                     coral.update_confidence(conf)
-                    distance, angle = MonoVision.find_distance_and_angle(
-                        center_x, AutoCoralConfig.CORAL_SIZE_IN_MM, scale)
+                    distance = MonoVision.get_distance_to_object_in_mm(AutoCoralConfig.CORAL_SIZE_IN_MM, scale)
+                    angle = MonoVision.get_angle_to_object_in_degrees(center_x)
                     coral.update_relative_location(distance, angle)
                     self.game_pieces[Coral].append(coral)
 
                 case 3:  # Robot
-                    center_x, center_y, scale, ratio = self.extract_features(
-                        box)
-
                     robot = Robot()
                     robot.update_frame_location(
                         center_x, center_y, scale, ratio, time.time())
                     robot.update_confidence(conf)
-                    distance, angle = MonoVision.find_distance_and_angle(
-                        center_x, AutoRobotConfig.AVERAGE_ROBOT_SIZE_IN_MM, scale)
+                    distance = MonoVision.get_distance_to_object_in_mm(AutoRobotConfig.AVERAGE_ROBOT_SIZE_IN_MM, scale)
+                    angle = MonoVision.get_angle_to_object_in_degrees(center_x)
                     robot.update_relative_location(distance, angle)
                     self.game_pieces[Robot].append(robot)
 

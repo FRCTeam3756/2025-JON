@@ -22,7 +22,7 @@ class HangDriveCommand:
         cage: List[float] = self.find_best_cage(cages)
         if not cage:
             self.logger.warning("No cage found")
-            return [0.0, 0.0, 0.0, False]
+            return (0.0, 0.0, 0.0, False)
 
 
         y = self.get_strafe_amount(cage)
@@ -33,7 +33,7 @@ class HangDriveCommand:
             x = AutoHangConfig.CAGE_NOT_FOUND_SPEED
 
         self.logger.info(x, y, rot, True)
-        return [x, y, rot, True]
+        return (x, y, rot, True)
 
     def find_best_cage(self, cages: list[list]) -> list:
         if not cages:

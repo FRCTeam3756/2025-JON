@@ -68,6 +68,8 @@ class AutoAlgaeConfig:
 
 class AutoCoralConfig:
     CORAL_SIZE_IN_MM: float = 11
+    CORAL_DESIRED_DISTANCE_IN_MM = 10.0
+    CORAL_MAX_DISTANCE_IN_MM = 120.0
 
 class AutoRobotConfig:
     AVERAGE_ROBOT_SIZE_IN_MM: float = 711
