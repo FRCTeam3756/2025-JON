@@ -14,8 +14,8 @@ class CameraConfig:     # Logitech C920
     FOCAL_LENGTH: float = 3.725     # in mm
     FRAME_WIDTH: int = 640
     FRAME_HEIGHT: int = 640
-    DIAGONAL_SENSOR_WIDTH: float = 6              # in mm
-    INCHES_BETWEEN_STEREO_CAMERAS: float = 0.0   # in inches
+    DIAGONAL_SENSOR_WIDTH: float = 6                # in mm
+    INCHES_BETWEEN_STEREO_CAMERAS: float = 0.0      # in inches
 
 class DisplayConfig:
     """Configuration settings for video output."""
@@ -25,7 +25,7 @@ class DisplayConfig:
     ROTATE_IMAGE: bool = False
     FLIP_IMAGE_HORIZONTALLY: bool = False
     FLIP_IMAGE_VERTICALLY: bool = False
-    INPUT_VIDEO_PATH: Any = "video.mp4" #"test/input/video3.mp4" #"http://limelight.local:5800" #
+    INPUT_VIDEO_PATH: Any = "video.mp4" #"http://limelight.local:5800" #
     OUTPUT_VIDEO_PATH: str = 'test/output/output.mp4'
     APRILTAG_CROSSHAIR_LINE_LENGTH = 10
     LABEL_COLOURS: Dict[str, List[int]] = {
