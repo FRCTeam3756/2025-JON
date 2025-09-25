@@ -13,8 +13,8 @@ from config import *
 from .video_analyser import YOLODetector
 from .video_display import VideoDisplay
 from apriltags.apriltag_finder import AprilTagFinder
-from decision_engine.trackable_objects import Algae, Cage, Coral, Robot
-from camera_calculations.mono_video import MonoVision
+from navigator.trackable_objects import Algae, Cage, Coral, Robot
+from camera.monovision import MonoVision
 
 ###############################################################
 

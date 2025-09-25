@@ -7,14 +7,14 @@ from logs.logging_setup import setup_logger
 
 from config import *
 from networking.rio_communication import RoboRio
-from camera_calculations.mono_video import MonoVision
-from vision_tracking.video_display import VideoDisplay
-from vision_tracking.video_processor import FrameProcessor
-from decision_engine.autoalgae import AlgaePickupCommand
-from decision_engine.autocoral import CoralPickupCommand
-from decision_engine.autoreef import ReefScoringCommand
-from decision_engine.autoprocessor import ProcessorScoringCommand
-from decision_engine.trackable_objects import *
+from camera.monovision import MonoVision
+from vision.video_display import VideoDisplay
+from vision.video_processor import FrameProcessor
+from navigator.autoalgae import AlgaePickupCommand
+from navigator.autocoral import CoralPickupCommand
+from navigator.autoreef import ReefScoringCommand
+from navigator.autoprocessor import ProcessorScoringCommand
+from navigator.trackable_objects import *
 from robotpy_apriltag import AprilTagDetection
 
 ###############################################################

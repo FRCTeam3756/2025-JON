@@ -4,7 +4,7 @@ from typing import Optional, Tuple
 from logs.logging_setup import setup_logger
 
 from config import AutoAlgaeConfig
-from decision_engine.trackable_objects import *
+from navigator.trackable_objects import *
 
 ################################################
 

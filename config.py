@@ -38,7 +38,7 @@ class DisplayConfig:
 class YOLOConfig:
     IOU_THRESHOLD: float = 0.5
     CONFIDENCE_THRESHOLD: float = 0.5
-    WEIGHTS_LOCATION: str = 'vision_tracking/weights/best.onnx'
+    WEIGHTS_LOCATION: str = 'vision/weights/best.onnx'
 
 class AprilTagConfig:
     APRILTAG_SIZE_IN_CM = 22.86
