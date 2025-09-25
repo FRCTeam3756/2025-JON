@@ -4,7 +4,9 @@ __pycache__/
 video.mp4
 logs/files/*
 test/input/*
-test/output/*\
+test/output/*
+!test/input/.gitkeep
+!test/output/.gitkeep
 
 .cache
 .env

@@ -25,7 +25,7 @@ class DisplayConfig:
     ROTATE_IMAGE: bool = False
     FLIP_IMAGE_HORIZONTALLY: bool = False
     FLIP_IMAGE_VERTICALLY: bool = False
-    INPUT_VIDEO_PATH: Any = "video.mp4" #"http://limelight.local:5800" #
+    INPUT_VIDEO_PATH: Any = "test/input/video.mp4" #"http://limelight.local:5800" #
     OUTPUT_VIDEO_PATH: str = 'test/output/output.mp4'
     APRILTAG_CROSSHAIR_LINE_LENGTH = 10
     LABEL_COLOURS: Dict[str, List[int]] = {
@@ -41,8 +41,7 @@ class YOLOConfig:
     WEIGHTS_LOCATION: str = 'vision_tracking/weights/best.onnx'
 
 class AprilTagConfig:
-    APRILTAG_SIZE_IN_INCHES = 9
-    APRILTAG_SIZE_IN_CM = APRILTAG_SIZE_IN_INCHES * 2.54
+    APRILTAG_SIZE_IN_CM = 22.86
 
 class SelfDrivingConfig:
     MAX_SELF_DRIVING_SPEED = 1.0
