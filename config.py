@@ -36,8 +36,8 @@ class DisplayConfig:
     }
 
 class YOLOConfig:
-    IOU_THRESHOLD: float = 0.4
-    CONFIDENCE_THRESHOLD: float = 0.7
+    IOU_THRESHOLD: float = 0.5
+    CONFIDENCE_THRESHOLD: float = 0.5
     WEIGHTS_LOCATION: str = 'vision_tracking/weights/best.onnx'
 
 class AprilTagConfig:
