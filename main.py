@@ -37,7 +37,7 @@ def main() -> None:
     
     out: Optional[cv2.VideoWriter] = None
     if DisplayConfig.SAVE_VIDEO:
-        fourcc: int = cv2.VideoWriter.fourcc(*'mp4v')
+        fourcc: int = cv2.VideoWriter.fourcc(*'XVID')
         out = cv2.VideoWriter(DisplayConfig.OUTPUT_VIDEO_PATH, fourcc, 60.0, 
                               (CameraConfig.FRAME_WIDTH, CameraConfig.FRAME_HEIGHT), True)
 
@@ -48,6 +48,7 @@ def main() -> None:
         logger.info("Video stream opened successfully.")
         while cap.isOpened():
             ret, frame = cap.read()
+            
             if not ret:
                 logger.info("End of video stream.")
                 break
@@ -96,8 +97,8 @@ def main() -> None:
                                         "success": success
                                     }
                                     roborio.send_data(data)
-                            else:
-                                logger.warning("[AUTO] Cannot Pathfind to Algae")
+                            # else:
+                            #     logger.warning("[AUTO] Cannot Pathfind to Algae")
                     elif roborio.get_data("has_algae") and processor_apriltag:
                         x, y, rot, success = autoprocessor.get_processor_navigation_command(processor_apriltag)
                         if success:
@@ -110,8 +111,8 @@ def main() -> None:
                                     "success": success
                                 }
                                 roborio.send_data(data)
-                        else:
-                            logger.warning("[AUTO] Cannot Pathfind to Processor")
+                        # else:
+                        #     logger.warning("[AUTO] Cannot Pathfind to Processor")
 
                 case "teleop":
                     corals: List[Coral] = game_pieces.get(Coral, [])
@@ -163,8 +164,8 @@ def main() -> None:
                                     "success": success
                                 }
                                 roborio.send_data(data)
-                        else:
-                            logger.warning("[TEST] Cannot Pathfind to Processor")
+                        # else:
+                        #     logger.warning("[TEST] Cannot Pathfind to Processor")
                 
             if DisplayConfig.SHOW_VIDEO:
                 messages.append(current_key)

@@ -38,6 +38,7 @@ class FrameProcessor:
         }
 
     def transform_frame(self, frame: np.ndarray) -> np.ndarray:
+        frame = cv2.resize(frame, (CameraConfig.FRAME_WIDTH, CameraConfig.FRAME_HEIGHT))
         if DisplayConfig.ROTATE_IMAGE:
             frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
         if DisplayConfig.FLIP_IMAGE_HORIZONTALLY:
