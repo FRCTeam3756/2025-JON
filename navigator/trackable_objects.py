@@ -3,7 +3,7 @@ from typing import Optional
 
 class Object:
     """The abstract class for all vision tracked objects"""
-    def __init__(self):
+    def __init__(self) -> None:
         self.x: Optional[int] = None
         self.y: Optional[int] = None
         self.scale: Optional[float] = None
@@ -25,22 +25,22 @@ class Object:
 
 class Algae(Object):
     """The class that holds all the characteristics of an Algae"""
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
 class Cage(Object):
     """The class that holds all the characteristics of a Cage"""
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
 class Coral(Object):
     """The class that holds all the characteristics of a Coral"""
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
 class Robot(Object):
     """The class that holds all the characteristics of a Robot"""
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.travel_angle = None
         self.travel_speed = None

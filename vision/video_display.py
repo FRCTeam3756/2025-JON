@@ -28,6 +28,8 @@ class VideoDisplay:
         for i, message in enumerate(messages):
             cv2.putText(frame, message, (10, (30 + (i * 50))), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 0), 2)
 
+        return frame
+
     @staticmethod
     def draw_angle_line(frame: np.ndarray, angle: float) -> None:
         """Draws a line at a given angle from the bottom center of the screen."""

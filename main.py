@@ -37,13 +37,11 @@ def main() -> None:
     
     out: Optional[cv2.VideoWriter] = None
     if DisplayConfig.SAVE_VIDEO:
-        fourcc: int = cv2.VideoWriter_fourcc(*'mp4v')
+        fourcc: int = cv2.VideoWriter.fourcc(*'mp4v')
         out = cv2.VideoWriter(DisplayConfig.OUTPUT_VIDEO_PATH, fourcc, 60.0, 
                               (CameraConfig.FRAME_WIDTH, CameraConfig.FRAME_HEIGHT), True)
 
-    if DebugConfig.TESTING:
-        current_key: Optional[str] = None
-
+    current_key: Optional[str] = None
     messages: List = []
     
     try:
@@ -91,7 +89,13 @@ def main() -> None:
                             if success:
                                 logger.info(f'[AUTO] Target Movement -  X: {x}, Y: {y}, ROT: {rot}')
                                 if not DebugConfig.TESTING:
-                                    roborio.send_data(x, y, rot, success)
+                                    data = {
+                                        "x": x, 
+                                        "y": y, 
+                                        "rot": rot, 
+                                        "success": success
+                                    }
+                                    roborio.send_data(data)
                             else:
                                 logger.warning("[AUTO] Cannot Pathfind to Algae")
                     elif roborio.get_data("has_algae") and processor_apriltag:
@@ -99,7 +103,13 @@ def main() -> None:
                         if success:
                             logger.info(f'[AUTO] Target Movement -  X: {x}, Y: {y}, ROT: {rot}')
                             if not DebugConfig.TESTING:
-                                roborio.send_data(x, y, rot, success)
+                                data = {
+                                    "x": x, 
+                                    "y": y, 
+                                    "rot": rot, 
+                                    "success": success
+                                }
+                                roborio.send_data(data)
                         else:
                             logger.warning("[AUTO] Cannot Pathfind to Processor")
 
@@ -112,12 +122,12 @@ def main() -> None:
                             VideoDisplay.draw_angle_line(frame, angle)
                             logger.info(f'[TELEOP] Aligning to Coral — Angle: {angle:.2f}°')
 
-                    elif reef_apriltags:
-                        target_apriltag = autoreef.compute_best_apriltag(reef_apriltags)
-                        if target_apriltag:
-                            angle = MonoVision.get_angle_to_object_in_degrees(target_apriltag.getCenter().x)
-                            VideoDisplay.draw_angle_line(frame, angle)
-                            logger.info(f'[TELEOP] Aligning to Processor — Angle: {angle:.2f}°')
+                    # elif reef_apriltags:
+                    #     target_apriltag = autoreef.compute_best_apriltag(reef_apriltags)
+                    #     if target_apriltag:
+                    #         angle = MonoVision.get_angle_to_object_in_degrees(target_apriltag.getCenter().x)
+                    #         VideoDisplay.draw_angle_line(frame, angle)
+                    #         logger.info(f'[TELEOP] Aligning to Processor — Angle: {angle:.2f}°')
 
                 case "test":
                     if current_key == "1":
@@ -130,7 +140,13 @@ def main() -> None:
                                 VideoDisplay.draw_angle_line(frame, angle)
                                 logger.info(f'[TEST] Algae Nav → X: {x:.2f}, Y: {y:.2f}, ROT: {rot:.2f}')
                                 if not DebugConfig.TESTING:
-                                    roborio.send_data(x, y, rot, success)
+                                    data = {
+                                        "x": x, 
+                                        "y": y, 
+                                        "rot": rot, 
+                                        "success": success
+                                    }
+                                    roborio.send_data(data)
                             else:
                                 logger.warning("[TEST] Algae pathfinding failed.")
                     elif current_key == "2" and processor_apriltag:
@@ -140,7 +156,13 @@ def main() -> None:
                             VideoDisplay.draw_angle_line(frame, angle_to_processor)
                             logger.info(f'[TEST] Target Movement -  X: {x}, Y: {y}, ROT: {rot}')
                             if not DebugConfig.TESTING:
-                                roborio.send_data(x, y, rot, success)
+                                data = {
+                                    "x": x, 
+                                    "y": y, 
+                                    "rot": rot, 
+                                    "success": success
+                                }
+                                roborio.send_data(data)
                         else:
                             logger.warning("[TEST] Cannot Pathfind to Processor")
                 

@@ -69,6 +69,10 @@ class AutoCoralConfig:
     CORAL_SIZE_IN_MM: float = 11
     CORAL_DESIRED_DISTANCE_IN_MM = 10.0
     CORAL_MAX_DISTANCE_IN_MM = 120.0
+    
+    CORAL_CONFIDENCE_WEIGHT: float = 1.0
+    CORAL_DISTANCE_WEIGHT: float = 1.0
+    CORAL_ANGULAR_WEIGHT: float = 1.0
 
 class AutoRobotConfig:
     AVERAGE_ROBOT_SIZE_IN_MM: float = 711

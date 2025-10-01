@@ -11,7 +11,7 @@ from robotpy_apriltag import AprilTagDetection
 from config import CameraConfig, AprilTagConfig
 
 class AprilTagFinder:
-    def __init__(self):
+    def __init__(self) -> None:
         file_name = os.path.splitext(os.path.basename(__file__))[0]
         setup_logger(file_name)
         self.logger = logging.getLogger(file_name)
@@ -20,17 +20,18 @@ class AprilTagFinder:
         self.apriltag_detector.addFamily("tag36h11", 3)
     
     @staticmethod
-    def estimate_distance(apriltag: AprilTagDetection):
+    def estimate_distance(apriltag: AprilTagDetection) -> float:
         """Estimate distance to the tag based on its size in the image."""
-        apriltag_width_in_pixels = apriltag.getCorners[0] - apriltag.getCorners[4]
+        apriltag_width_in_pixels = apriltag.getCorner(0).x - apriltag.getCorner(3).x
         return (CameraConfig.FOCAL_LENGTH * AprilTagConfig.APRILTAG_SIZE_IN_CM) / apriltag_width_in_pixels
     
     @staticmethod
-    def calculate_anglular_diviation(apriltag: AprilTagDetection):
+    def calculate_anglular_diviation(apriltag: AprilTagDetection) -> float:
         """Calculate the angle offset of an apriltag."""
         return math.degrees(math.atan((apriltag.getCenter().x - (CameraConfig.FRAME_WIDTH / 2)) / CameraConfig.FOCAL_LENGTH))
 
-    def find_apriltags(self, frame) -> List:
+    def find_apriltags(self, frame) -> List[AprilTagDetection]:
         """Main loop for processing frames and sending drive instructions."""
         gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        return self.apriltag_detector.detect(gray_frame)
+        apriltags = self.apriltag_detector.detect(gray_frame)
+        return apriltags

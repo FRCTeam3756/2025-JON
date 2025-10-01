@@ -13,6 +13,7 @@ from config import *
 from .video_analyser import YOLODetector
 from .video_display import VideoDisplay
 from apriltags.apriltag_finder import AprilTagFinder
+from robotpy_apriltag import AprilTagDetection
 from navigator.trackable_objects import Algae, Cage, Coral, Robot
 from camera.monovision import MonoVision
 
@@ -46,7 +47,7 @@ class FrameProcessor:
 
         return frame
 
-    def process_frame(self, frame: np.ndarray) -> Tuple[np.ndarray, Dict[Type[Union[Algae, Cage, Coral, Robot]], List]]:
+    def process_frame(self, frame: np.ndarray) -> Tuple[np.ndarray, Dict[Type[Algae | Cage | Coral | Robot], List[Algae | Cage | Coral | Robot]], List[AprilTagDetection]]:
         """Processes a single frame for detections and annotations."""
         boxes, confidences, class_ids = self.yolo_detector.detect(frame)
         apriltags = self.apriltag_detector.find_apriltags(frame)

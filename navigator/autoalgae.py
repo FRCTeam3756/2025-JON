@@ -1,6 +1,6 @@
 import os
 import logging
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 from logs.logging_setup import setup_logger
 
 from config import AutoAlgaeConfig
@@ -47,7 +47,7 @@ class AlgaePickupCommand:
             return (0.0, 0.0, 0.0, False)
         
 
-    def compute_best_algae(self, *algaes: Algae) -> Optional[Algae]:
+    def compute_best_algae(self, algaes: List[Algae]) -> Optional[Algae]:
         """Compute the best game piece based on weighted attributes."""
         if not algaes:
             return None

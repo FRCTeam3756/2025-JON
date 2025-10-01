@@ -1,5 +1,5 @@
 import os
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 from logs.logging_setup import setup_logger
 
 from config import AutoCoralConfig
@@ -40,7 +40,7 @@ class CoralPickupCommand:
         self.logger.info(f"Coral navigation command: x={x:.1f}%, y={y:.1f}%, rot={rot:.1f}%")
         return (x, y, rot, True)
 
-    def compute_best_coral(self, *corals: Coral) -> Optional[Coral]:
+    def compute_best_coral(self, corals: List[Coral]) -> Optional[Coral]:
         """Compute the best game piece based on weighted attributes."""
         if not corals:
             return None

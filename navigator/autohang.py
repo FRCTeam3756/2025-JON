@@ -1,7 +1,7 @@
 import os
 import logging
 from typing import List, Tuple
-from config import DisplayConfig, AutoHangConfig
+from config import CameraConfig, DisplayConfig, AutoHangConfig
 from logs.logging_setup import setup_logger
 
 class HangDriveCommand:
@@ -12,8 +12,7 @@ class HangDriveCommand:
         setup_logger(file_name)
         self.logger = logging.getLogger(file_name)
 
-    @staticmethod
-    def clamp(input: float, minimum: float, maximum: float) -> float:
+    def clamp(self, input: float, minimum: float, maximum: float) -> float:
         return max(min(input, maximum), minimum)
 
     def get_autohang_command(self, cages: List[List[float]]) -> Tuple[float, float, float, bool]:
@@ -41,9 +40,9 @@ class HangDriveCommand:
 
         best_cage: List[float] = max(
             cages,
-            key=lambda cage: ((cage[2] / DisplayConfig.FRAME_WIDTH) * AutoHangConfig.CAGE_SIZE_WEIGHT) +
-            ((1 - abs(cage[0] - DisplayConfig.FRAME_WIDTH / 2) /
-             (DisplayConfig.FRAME_WIDTH / 2)) * AutoHangConfig.CAGE_CENTERED_WEIGHT)
+            key=lambda cage: ((cage[2] / CameraConfig.FRAME_WIDTH) * AutoHangConfig.CAGE_SIZE_WEIGHT) +
+            ((1 - abs(cage[0] - CameraConfig.FRAME_WIDTH / 2) /
+             (CameraConfig.FRAME_WIDTH / 2)) * AutoHangConfig.CAGE_CENTERED_WEIGHT)
         )
         return best_cage
 
@@ -51,7 +50,7 @@ class HangDriveCommand:
         if not cage:
             return 0.0
         
-        strafe_amount = (cage[0] - DisplayConfig.FRAME_WIDTH / 2) / (DisplayConfig.FRAME_WIDTH / 2) if cage else 0.0
+        strafe_amount = (cage[0] - CameraConfig.FRAME_WIDTH / 2) / (CameraConfig.FRAME_WIDTH / 2) if cage else 0.0
 
         strafe_amount = self.clamp(
             strafe_amount, -AutoHangConfig.POLE_STRAFING_MAXIMUM, AutoHangConfig.POLE_STRAFING_MINIMUM)
@@ -61,5 +60,5 @@ class HangDriveCommand:
     def get_driving_speed(self, cage: list) -> float:
         return cage[2] / 640 if cage else 0.0
 
-    def get_rotation_amount(self, cage: list[list]) -> float:
-        return (cage[0] - DisplayConfig.FRAME_WIDTH / 2) / (DisplayConfig.FRAME_WIDTH / 2) if cage else 0.0
+    def get_rotation_amount(self, cage: list[float]) -> float:
+        return (cage[0] - CameraConfig.FRAME_WIDTH / 2) / (CameraConfig.FRAME_WIDTH / 2) if cage else 0.0
