@@ -82,7 +82,7 @@ def main() -> None:
             match task:
                 case "auto":
                     if not roborio.get_data("has_algae"):
-                        algaes: List[Algae] = game_pieces.get(Algae, [])
+                        algaes: List[Algae] = game_pieces.get_algae()
                         best_algae = autoalgae.compute_best_algae(algaes)
                        
                         if best_algae: 
@@ -115,7 +115,7 @@ def main() -> None:
                         #     logger.warning("[AUTO] Cannot Pathfind to Processor")
 
                 case "teleop":
-                    corals: List[Coral] = game_pieces.get(Coral, [])
+                    corals: List[Coral] = game_pieces.get_coral()
                     if corals:
                         target_coral = autocoral.compute_best_coral(corals)
                         if target_coral:
@@ -132,7 +132,7 @@ def main() -> None:
 
                 case "test":
                     if current_key == "1":
-                        algaes: List[Algae] = game_pieces.get(Algae, [])
+                        algaes: List[Algae] = game_pieces.get_algae()
                         best_algae = autoalgae.compute_best_algae(algaes)
                         if best_algae:
                             x, y, rot, success = autoalgae.get_algae_navigation_command(best_algae)
@@ -148,8 +148,8 @@ def main() -> None:
                                         "success": success
                                     }
                                     roborio.send_data(data)
-                            else:
-                                logger.warning("[TEST] Algae pathfinding failed.")
+                            # else:
+                            #     logger.warning("[TEST] Algae pathfinding failed.")
                     elif current_key == "2" and processor_apriltag:
                         x, y, rot, success = autoprocessor.get_processor_navigation_command(processor_apriltag) 
                         if success:

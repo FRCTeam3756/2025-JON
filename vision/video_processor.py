@@ -14,7 +14,7 @@ from .video_analyser import YOLODetector
 from .video_display import VideoDisplay
 from apriltags.apriltag_finder import AprilTagFinder
 from robotpy_apriltag import AprilTagDetection
-from navigator.trackable_objects import Algae, Cage, Coral, Robot
+from navigator.trackable_objects import *
 from camera.monovision import MonoVision
 
 ###############################################################
@@ -33,9 +33,7 @@ class FrameProcessor:
         self.apriltag_detector: AprilTagFinder = AprilTagFinder()
         self.start_time: float = time.time()
         self.frame_count: int = 0
-        self.game_pieces: Dict[Type[Union[Algae, Cage, Coral, Robot]], List] = {
-            obj: [] for obj in (Algae, Cage, Coral, Robot)
-        }
+        self.game_pieces: GamePieces = GamePieces()
 
     def transform_frame(self, frame: np.ndarray) -> np.ndarray:
         frame = cv2.resize(frame, (CameraConfig.FRAME_WIDTH, CameraConfig.FRAME_HEIGHT))
@@ -48,7 +46,7 @@ class FrameProcessor:
 
         return frame
 
-    def process_frame(self, frame: np.ndarray) -> Tuple[np.ndarray, Dict[Type[Algae | Cage | Coral | Robot], List[Algae | Cage | Coral | Robot]], List[AprilTagDetection]]:
+    def process_frame(self, frame: np.ndarray) -> Tuple[np.ndarray, GamePieces, List[AprilTagDetection]]:
         """Processes a single frame for detections and annotations."""
         boxes, confidences, class_ids = self.yolo_detector.detect(frame)
         apriltags = self.apriltag_detector.find_apriltags(frame)
@@ -77,8 +75,7 @@ class FrameProcessor:
 
     def update_game_pieces(self, boxes: np.ndarray, confidences: np.ndarray, class_ids: np.ndarray) -> None:
         """Update game pieces with detection data for game piece selection."""
-        for key in self.game_pieces:
-            self.game_pieces[key] = []
+        self.game_pieces.clear()
 
         for box, conf, class_id in zip(boxes, confidences, class_ids):
             center_x, center_y, scale, ratio = self.extract_features(box)
@@ -92,7 +89,7 @@ class FrameProcessor:
                     distance = MonoVision.get_distance_to_object_in_mm(AutoAlgaeConfig.ALGAE_SIZE_IN_MM, scale)
                     angle = MonoVision.get_angle_to_object_in_degrees(center_x)
                     algae.update_relative_location(distance, angle)
-                    self.game_pieces[Algae].append(algae)
+                    self.game_pieces.add(Algae, algae)
 
                 case 1:  # Cage
                     cage = Cage()
@@ -102,7 +99,7 @@ class FrameProcessor:
                     distance = MonoVision.get_distance_to_object_in_mm(AutoHangConfig.CAGE_WIDTH_IN_MM, scale)
                     angle = MonoVision.get_angle_to_object_in_degrees(center_x)
                     cage.update_relative_location(distance, angle)
-                    self.game_pieces[Cage].append(cage)
+                    self.game_pieces.add(Cage, cage)
 
                 case 2:  # Coral
                     coral = Coral()
@@ -112,7 +109,7 @@ class FrameProcessor:
                     distance = MonoVision.get_distance_to_object_in_mm(AutoCoralConfig.CORAL_SIZE_IN_MM, scale)
                     angle = MonoVision.get_angle_to_object_in_degrees(center_x)
                     coral.update_relative_location(distance, angle)
-                    self.game_pieces[Coral].append(coral)
+                    self.game_pieces.add(Coral, coral)
 
                 case 3:  # Robot
                     robot = Robot()
@@ -122,7 +119,7 @@ class FrameProcessor:
                     distance = MonoVision.get_distance_to_object_in_mm(AutoRobotConfig.AVERAGE_ROBOT_SIZE_IN_MM, scale)
                     angle = MonoVision.get_angle_to_object_in_degrees(center_x)
                     robot.update_relative_location(distance, angle)
-                    self.game_pieces[Robot].append(robot)
+                    self.game_pieces.add(Robot, robot)
 
                 case _: continue
 

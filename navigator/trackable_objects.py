@@ -1,5 +1,5 @@
 import math
-from typing import Optional
+from typing import Optional, TypeVar, List, Type, Dict, Union
 
 class Object:
     """The abstract class for all vision tracked objects"""
@@ -79,3 +79,32 @@ class Robot(Object):
     
     def is_data_recent(self, current_time):
         return (current_time - self.timestamp) <= 1 if self.timestamp is not None else False
+    
+T = TypeVar("T", Algae, Cage, Coral, Robot)
+class GamePieces:
+    def __init__(self) -> None:
+        self._data: Dict[Type[Union[Algae, Cage, Coral, Robot]], List[Union[Algae, Cage, Coral, Robot]]] = {
+            Algae: [],
+            Cage: [],
+            Coral: [],
+            Robot: []
+        }
+
+    def add(self, cls: Type[T], obj: T) -> None:
+        self._data[cls].append(obj)
+
+    def get_algae(self) -> List[Algae]:
+        return self._data[Algae]  # type: ignore
+
+    def get_cage(self) -> List[Cage]:
+        return self._data[Cage]  # type: ignore
+
+    def get_coral(self) -> List[Coral]:
+        return self._data[Coral]  # type: ignore
+
+    def get_robot(self) -> List[Robot]:
+        return self._data[Robot]  # type: ignore
+
+    def clear(self) -> None:
+        for key in self._data:
+            self._data[key] = []
