@@ -8,7 +8,7 @@ from navigator.trackable_objects import *
 ################################################
 
 class CoralPickupCommand:
-    REQUIRED_ATTRIBUTES = ['confidence', 'distance', 'angle']
+    REQUIRED_ATTRIBUTES = ['confidence', 'distance_in_mm', 'angle_in_degrees']
 
     def __init__(self) -> None:
         file_name = os.path.splitext(os.path.basename(__file__))[0]

@@ -5,7 +5,7 @@ from config import CameraConfig, DisplayConfig, AutoHangConfig
 from logs.logging_setup import setup_logger
 
 class HangDriveCommand:
-    REQUIRED_ATTRIBUTES: List[str] = ['confidence', 'distance', 'angle']
+    REQUIRED_ATTRIBUTES: List[str] = ['confidence', 'distance_in_mm', 'angle_in_degrees']
 
     def __init__(self) -> None:
         file_name = os.path.splitext(os.path.basename(__file__))[0]
