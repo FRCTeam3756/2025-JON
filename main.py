@@ -90,7 +90,7 @@ def testing_mainloop(logger: Logger, frame_processor: FrameProcessor, autoalgae:
                 if success:
                     angle = MonoVision.get_angle_to_object_in_degrees(best_algae.x)
                     VideoDisplay.draw_angle_line(frame, angle)
-                    logger.info(f'[TEST] Algae Nav → X: {x:.2f}, Y: {y:.2f}, ROT: {rot:.2f}')
+                    logger.info(f'[TEST] Algae Nav - X: {x:.2f}, Y: {y:.2f}, ROT: {rot:.2f}')
                     if not DebugConfig.TESTING:
                         data = {
                             "x": x, 
@@ -107,7 +107,7 @@ def testing_mainloop(logger: Logger, frame_processor: FrameProcessor, autoalgae:
             if success:
                 angle_to_processor = MonoVision.get_angle_to_object_in_degrees(processor_apriltag.getCenter().x)
                 VideoDisplay.draw_angle_line(frame, angle_to_processor)
-                logger.info(f'[TEST] Target Movement -  X: {x}, Y: {y}, ROT: {rot}')
+                logger.info(f'[TEST] Target Movement - X: {x}, Y: {y}, ROT: {rot}')
                 if not DebugConfig.TESTING:
                     data = {
                         "x": x, 
