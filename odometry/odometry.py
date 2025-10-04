@@ -1,19 +1,24 @@
 import cv2
-import numpy as np
 import math
 import time
+import numpy as np
+from random import randint
+
+from navigator.trackable_objects import Algae, Coral, Cage, GamePieces, Robot
 
 
 class Odometry:
-    FIELD_WIDTH_M = 54.0 * 0.3048  # 16.4592 m
-    FIELD_HEIGHT_M = 27.0 * 0.3048  # 8.2296 m
-    PIXELS_PER_METER = 70  # adjust for window size
+    FIELD_WIDTH_M = 16.4592
+    FIELD_HEIGHT_M = 8.2296
+    PIXELS_PER_METER = 70
     MARGIN_PX = 20
     ROBOT_RADIUS_M = 0.45
     ROBOT_COLOR = (0, 125, 255)
     ROBOT_ARROW_LENGTH_M = 1.0
     TAG_COLORS = [(255, 0, 0), (0, 255, 255)]
     INCH_TO_M = 0.0254
+    VISION_FOV_DEG = 60
+    VISION_RANGE_M = 4.0
 
     APRILTAG_POSITIONS = {
         1: (656.98, 24.73, 126),
@@ -41,12 +46,11 @@ class Odometry:
     }
 
     def __init__(self):
-        self.duration_s = 20
         self.fps = 30
         self.frame_time = 1.0 / 30
-        self.max_trail_points = 500
-        self.trail = []
-        self.target_pos = (self.FIELD_WIDTH_M * 0.85, self.FIELD_HEIGHT_M * 0.75)
+        self.target_pos = (self.FIELD_WIDTH_M * 0.85,
+                           self.FIELD_HEIGHT_M * 0.75)
+        self.game_pieces = GamePieces()
 
         self.APRILTAG_POSITIONS = {
             k: (x * self.INCH_TO_M, y * self.INCH_TO_M, r)
@@ -60,6 +64,17 @@ class Odometry:
             int(self.FIELD_HEIGHT_M * self.PIXELS_PER_METER) + 2 * self.MARGIN_PX
         )
 
+        for _ in range(3):
+            algae = Algae()
+            algae.update_relative_location(
+                randint(500, 2000), randint(-60, 60))
+            self.game_pieces.add(Algae, algae)
+        for _ in range(2):
+            coral = Coral()
+            coral.update_relative_location(
+                randint(1000, 2500), randint(-90, 90))
+            self.game_pieces.add(Coral, coral)
+
     def field_to_pixel(self, x_m, y_m):
         px = int(self.MARGIN_PX + x_m * self.PIXELS_PER_METER)
         py = int(self.IMG_H - (self.MARGIN_PX + y_m * self.PIXELS_PER_METER))
@@ -67,14 +82,16 @@ class Odometry:
 
     def draw_field(self, canvas):
         top_left = (self.MARGIN_PX, self.MARGIN_PX)
-        bottom_right = (self.IMG_W - self.MARGIN_PX, self.IMG_H - self.MARGIN_PX)
-        canvas[top_left[1] : bottom_right[1], top_left[0] : bottom_right[0]] = (
+        bottom_right = (self.IMG_W - self.MARGIN_PX,
+                        self.IMG_H - self.MARGIN_PX)
+        canvas[top_left[1]: bottom_right[1], top_left[0]: bottom_right[0]] = (
             50,
             120,
             50,
         )
         cv2.rectangle(canvas, top_left, bottom_right, (255, 255, 255), 2)
-        cx_px = int(self.MARGIN_PX + (self.FIELD_WIDTH_M / 2) * self.PIXELS_PER_METER)
+        cx_px = int(self.MARGIN_PX + (self.FIELD_WIDTH_M / 2)
+                    * self.PIXELS_PER_METER)
         cv2.line(
             canvas,
             (cx_px, self.MARGIN_PX),
@@ -130,33 +147,30 @@ class Odometry:
             fy = int(py - math.sin(rad) * half_px * 1.3)
             cv2.line(canvas, (px, py), (fx, fy), (0, 0, 0), 2)
 
-    def draw_robot(self, canvas, x_m, y_m, heading_rad):
+    def draw_ramferno(self, canvas, x_m, y_m, heading_rad):
         cx, cy = self.field_to_pixel(x_m, y_m)
         r_px = int(self.ROBOT_RADIUS_M * self.PIXELS_PER_METER)
-        front = (r_px, 0)
-        left = (-0.5 * r_px, 0.6 * r_px)
-        right = (-0.5 * r_px, -0.6 * r_px)
+        half_side = r_px
+        corners = [
+            (-half_side, -half_side),
+            (half_side, -half_side),
+            (half_side, half_side),
+            (-half_side, half_side),
+        ]
 
         def rot(lx, ly):
             rx = lx * math.cos(heading_rad) - ly * math.sin(heading_rad)
             ry = lx * math.sin(heading_rad) + ly * math.cos(heading_rad)
             return int(cx + rx), int(cy - ry)
 
-        p1, p2, p3 = rot(*front), rot(*left), rot(*right)
-        pts = np.array([p1, p2, p3], np.int32)
+        pts = np.array([rot(x, y) for x, y in corners], np.int32)
         cv2.fillConvexPoly(canvas, pts, self.ROBOT_COLOR)
         cv2.polylines(canvas, [pts], True, (0, 0, 150), 2)
 
-        arrow_len = int(self.ROBOT_ARROW_LENGTH_M * self.PIXELS_PER_METER)
-        hx = int(cx + math.cos(heading_rad) * arrow_len)
-        hy = int(cy - math.sin(heading_rad) * arrow_len)
-        cv2.arrowedLine(canvas, (cx, cy), (hx, hy), (0, 0, 150), 2, tipLength=0.25)
-
-        if len(self.trail) >= 2:
-            pts_px = [self.field_to_pixel(x, y) for x, y in self.trail]
-            for i in range(len(pts_px) - 1):
-                thickness = max(1, int(3 * (i / len(pts_px))))
-                cv2.line(canvas, pts_px[i], pts_px[i + 1], (0, 0, 180), thickness)
+        front_local = [(half_side, -half_side), (half_side, half_side)]
+        front_pts = np.array([rot(x, y) for x, y in front_local], np.int32)
+        cv2.line(canvas, tuple(front_pts[0]),
+                 tuple(front_pts[1]), (0, 0, 255), 3)
 
         if self.target_pos:
             tx_m, ty_m = self.target_pos
@@ -175,6 +189,90 @@ class Odometry:
                 1,
                 cv2.LINE_AA,
             )
+
+    def draw_objects(self, canvas, robot_x_m, robot_y_m, robot_heading_rad, fov_rad, range_m):
+        """Draw all additional tracked objects."""
+        color_map = {
+            Algae: (0, 255, 0),
+            Cage: (255, 0, 0),
+            Coral: (0, 255, 255),
+            Robot: (255, 0, 255)
+        }
+
+        MM_TO_M = 0.001
+
+        to_remove = []
+
+        for cls, objs in list(self.game_pieces._data.items()):
+            for obj in list(objs):
+                if obj.distance_in_mm is None or obj.angle_in_degrees is None:
+                    continue
+                
+                dist_m = obj.distance_in_mm * MM_TO_M
+                rel_angle_rad = math.radians(obj.angle_in_degrees)
+                abs_angle_rad = robot_heading_rad + rel_angle_rad
+                obj_x_m = robot_x_m + dist_m * math.cos(abs_angle_rad)
+                obj_y_m = robot_y_m + dist_m * math.sin(abs_angle_rad)
+
+                visible = self.object_visible(robot_x_m, robot_y_m, robot_heading_rad, obj_x_m, obj_y_m, fov_rad, range_m)
+
+                if visible:
+                    px, py = self.field_to_pixel(obj_x_m, obj_y_m)
+                    cv2.circle(canvas, (px, py), 6, color_map.get(cls, (200, 200, 200)), -1)
+                    cv2.putText(
+                        canvas,
+                        cls.__name__,
+                        (px + 8, py - 8),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.4,
+                        color_map.get(cls, (200, 200, 200)),
+                        1,
+                        cv2.LINE_AA,
+                    )
+                else:
+                    to_remove.append((cls, obj))
+
+        for cls, obj in to_remove:
+            self.game_pieces._data[cls].remove(obj)
+
+    def draw_vision_cone(self, canvas, x_m, y_m, heading_rad):
+        """Draws a semi-transparent grey cone representing robot vision."""
+        fov = math.radians(60)
+        range_m = 4.0
+
+        left_angle = heading_rad - fov / 2
+        right_angle = heading_rad + fov / 2
+
+        cx, cy = self.field_to_pixel(x_m, y_m)
+        end_left = self.field_to_pixel(
+            x_m + range_m * math.cos(left_angle),
+            y_m + range_m * math.sin(left_angle)
+        )
+        end_right = self.field_to_pixel(
+            x_m + range_m * math.cos(right_angle),
+            y_m + range_m * math.sin(right_angle)
+        )
+
+        cone_pts = np.array([ [cx, cy], end_left, end_right ], np.int32)
+
+        overlay = canvas.copy()
+        cv2.fillConvexPoly(overlay, cone_pts, (100, 100, 100))
+        cv2.addWeighted(overlay, 0.3, canvas, 0.7, 0, canvas)
+
+        return fov, range_m
+
+    def object_visible(self, robot_x_m, robot_y_m, robot_heading_rad, obj_x_m, obj_y_m, fov_rad, range_m):
+        """Checks if object is within robot's vision cone."""
+        dx = obj_x_m - robot_x_m
+        dy = obj_y_m - robot_y_m
+        dist = math.hypot(dx, dy)
+        if dist > range_m:
+            return False
+        
+        angle_to_obj = math.atan2(dy, dx)
+        angle_diff = (angle_to_obj - robot_heading_rad + math.pi) % (2 * math.pi) - math.pi
+        
+        return abs(angle_diff) <= fov_rad / 2
 
     def robot_pose_at_time(self, t):
         """Return (x,y,heading) for a looping figure-8 path."""
@@ -196,23 +294,24 @@ class Odometry:
         cv2.namedWindow(win, cv2.WINDOW_NORMAL)
         cv2.resizeWindow(win, self.IMG_W, self.IMG_H)
         t0 = time.time()
-        total_frames = int(self.duration_s * self.fps)
 
-        for f in range(total_frames):
+        while True:
             t = time.time() - t0
             x_m, y_m, heading = self.robot_pose_at_time(t)
-            self.trail.append((x_m, y_m))
-            if len(self.trail) > self.max_trail_points:
-                self.trail.pop(0)
 
             canvas = np.zeros((self.IMG_H, self.IMG_W, 3), np.uint8)
             self.draw_field(canvas)
             self.draw_apriltags(canvas)
-            self.draw_robot(canvas, x_m, y_m, heading)
+
+            self.draw_ramferno(canvas, x_m, y_m, heading)
+            
+            fov_rad, range_m = self.draw_vision_cone(canvas, x_m, y_m, heading)
+
+            self.draw_objects(canvas, x_m, y_m, heading, fov_rad, range_m)
 
             cv2.putText(
                 canvas,
-                f"t={t:.1f}s frame={f+1}/{total_frames}",
+                f"t={t:.1f}s",
                 (self.MARGIN_PX + 6, self.IMG_H - self.MARGIN_PX - 8),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.45,
@@ -224,12 +323,8 @@ class Odometry:
             cv2.imshow(win, canvas)
             if cv2.waitKey(1) & 0xFF == 27:
                 break
-
-            elapsed = time.time() - (t0 + f / self.fps)
-            if (sleep := self.frame_time - elapsed) > 0:
-                time.sleep(sleep)
-
         cv2.destroyAllWindows()
+
 
 if __name__ == "__main__":
     odo = Odometry()
