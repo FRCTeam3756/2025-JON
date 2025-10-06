@@ -1,8 +1,6 @@
 import cv2
 import math
-import time
 import numpy as np
-from random import randint
 
 from navigator.trackable_objects import Algae, Coral, Cage, GamePieces, Robot
 
@@ -19,6 +17,7 @@ class Odometry:
     INCH_TO_M = 0.0254
     VISION_FOV_DEG = 60
     VISION_RANGE_M = 4.0
+    WINDOW_NAME = "FRC 2025 Odometry Demo"
 
     APRILTAG_POSITIONS = {
         1: (656.98, 24.73, 126),
@@ -63,17 +62,6 @@ class Odometry:
         self.IMG_H = (
             int(self.FIELD_HEIGHT_M * self.PIXELS_PER_METER) + 2 * self.MARGIN_PX
         )
-
-        for _ in range(3):
-            algae = Algae()
-            algae.update_relative_location(
-                randint(500, 2000), randint(-60, 60))
-            self.game_pieces.add(Algae, algae)
-        for _ in range(2):
-            coral = Coral()
-            coral.update_relative_location(
-                randint(1000, 2500), randint(-90, 90))
-            self.game_pieces.add(Coral, coral)
 
     def field_to_pixel(self, x_m, y_m):
         px = int(self.MARGIN_PX + x_m * self.PIXELS_PER_METER)
@@ -273,59 +261,33 @@ class Odometry:
         angle_diff = (angle_to_obj - robot_heading_rad + math.pi) % (2 * math.pi) - math.pi
         
         return abs(angle_diff) <= fov_rad / 2
+    
+    def initialize_window(self) -> None:
+        cv2.namedWindow(self.WINDOW_NAME, cv2.WINDOW_NORMAL)
+        cv2.resizeWindow(self.WINDOW_NAME, self.IMG_W, self.IMG_H)
 
-    def robot_pose_at_time(self, t):
-        """Return (x,y,heading) for a looping figure-8 path."""
-        cx = self.FIELD_WIDTH_M / 2
-        cy = self.FIELD_HEIGHT_M / 2
-        ax = self.FIELD_WIDTH_M * 0.35
-        ay = self.FIELD_HEIGHT_M * 0.35
-        omega = 0.5
-        theta = omega * t
-        x = cx + ax * math.sin(theta)
-        y = cy + ay * math.sin(2 * theta) * 0.6
-        dx = ax * omega * math.cos(theta)
-        dy = ay * 2 * omega * math.cos(2 * theta) * 0.6
-        heading = math.atan2(dy, dx)
-        return x, y, heading
+    def process_frame(self, robot_x: float, robot_y: float, robot_heading: float) -> np.ndarray:
+        canvas = np.zeros((self.IMG_H, self.IMG_W, 3), np.uint8)
+        self.draw_field(canvas)
+        self.draw_apriltags(canvas)
 
-    def run(self):
-        win = "FRC 2025 Odometry Demo"
-        cv2.namedWindow(win, cv2.WINDOW_NORMAL)
-        cv2.resizeWindow(win, self.IMG_W, self.IMG_H)
-        t0 = time.time()
+        self.draw_ramferno(canvas, robot_x, robot_y, robot_heading)
+        
+        fov_rad, range_m = self.draw_vision_cone(canvas, robot_x, robot_y, robot_heading)
 
-        while True:
-            t = time.time() - t0
-            x_m, y_m, heading = self.robot_pose_at_time(t)
+        self.draw_objects(canvas, robot_x, robot_y, robot_heading, fov_rad, range_m)
 
-            canvas = np.zeros((self.IMG_H, self.IMG_W, 3), np.uint8)
-            self.draw_field(canvas)
-            self.draw_apriltags(canvas)
-
-            self.draw_ramferno(canvas, x_m, y_m, heading)
-            
-            fov_rad, range_m = self.draw_vision_cone(canvas, x_m, y_m, heading)
-
-            self.draw_objects(canvas, x_m, y_m, heading, fov_rad, range_m)
-
-            cv2.putText(
-                canvas,
-                f"t={t:.1f}s",
-                (self.MARGIN_PX + 6, self.IMG_H - self.MARGIN_PX - 8),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.45,
-                (230, 230, 230),
-                1,
-                cv2.LINE_AA,
-            )
-
-            cv2.imshow(win, canvas)
-            if cv2.waitKey(1) & 0xFF == 27:
-                break
-        cv2.destroyAllWindows()
-
+        return canvas
 
 if __name__ == "__main__":
     odo = Odometry()
-    odo.run()
+
+    try:
+        while True:
+            frame = odo.process_frame(1, 1, 1)
+
+            cv2.imshow(odo.WINDOW_NAME, frame)
+            if cv2.waitKey(1) & 0xFF == 27:
+                break
+    finally:
+        cv2.destroyAllWindows()

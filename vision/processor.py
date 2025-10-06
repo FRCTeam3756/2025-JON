@@ -2,25 +2,25 @@ import os
 import time
 import logging
 from logs.logging_setup import setup_logger
-from typing import Tuple, Dict, List, Type, Union
+from typing import Tuple, List
 
 import cv2
 import torch
 import torchvision
 import numpy as np
 
-from config import *
-from .video_analyser import YOLODetector
-from .video_display import VideoDisplay
+from config import AutoAlgaeConfig, AutoCoralConfig, AutoHangConfig, AutoRobotConfig, CameraConfig, DetectorConfig, DisplayConfig, LoggingConfig 
+from .detector import Detector
+from .display import Display
 from apriltags.apriltag_finder import AprilTagFinder
 from robotpy_apriltag import AprilTagDetection
-from navigator.trackable_objects import *
+from navigator.trackable_objects import Algae, Cage, Coral, GamePieces, Robot
 from camera.monovision import MonoVision
 
 ###############################################################
 
 
-class FrameProcessor:
+class Processor:
     def __init__(self) -> None:
         file_name = os.path.splitext(os.path.basename(__file__))[0]
         setup_logger(file_name)
@@ -28,8 +28,8 @@ class FrameProcessor:
 
         self.logger.info(
             f'Using device: {"GPU" if torch.cuda.is_available() else "CPU"}')
-        self.yolo_detector: YOLODetector = YOLODetector(
-            YOLOConfig.WEIGHTS_LOCATION, YOLOConfig.CONFIDENCE_THRESHOLD)
+        self.yolo_detector: Detector = Detector(
+            DetectorConfig.WEIGHTS_LOCATION, DetectorConfig.CONFIDENCE_THRESHOLD)
         self.apriltag_detector: AprilTagFinder = AprilTagFinder()
         self.start_time: float = time.time()
         self.frame_count: int = 0
@@ -57,7 +57,7 @@ class FrameProcessor:
             boxes_filtered, confidences_filtered, class_ids_filtered = boxes[
                 indices], confidences[indices], class_ids[indices]
 
-            frame = VideoDisplay.annotate_frame(
+            frame = Display.annotate_frame(
                 frame, boxes_filtered, class_ids_filtered, apriltags)
             self.update_game_pieces(
                 boxes_filtered, confidences_filtered, class_ids_filtered)
@@ -134,7 +134,7 @@ class FrameProcessor:
             confidences, dtype=torch.float32, device=self.yolo_detector.device)
 
         indices = torchvision.ops.nms(boxes_tensor.to(self.yolo_detector.device), confidences_tensor.to(
-            self.yolo_detector.device), YOLOConfig.IOU_THRESHOLD)
+            self.yolo_detector.device), DetectorConfig.IOU_THRESHOLD)
         return indices.cpu().numpy()
 
     def calculate_frame_rate(self) -> None:

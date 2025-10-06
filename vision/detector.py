@@ -9,7 +9,7 @@ from ultralytics import YOLO
 
 ###############################################################
 
-class YOLODetector:
+class Detector:
     def __init__(self, weights_location: str, confidence_threshold: float) -> None:
         file_name = os.path.splitext(os.path.basename(__file__))[0]
         setup_logger(file_name)

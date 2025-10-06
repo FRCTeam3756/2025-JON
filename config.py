@@ -35,7 +35,7 @@ class DisplayConfig:
         "5": [255, 0, 0],       # Robot
     }
 
-class YOLOConfig:
+class DetectorConfig:
     IOU_THRESHOLD: float = 0.5
     CONFIDENCE_THRESHOLD: float = 0.5
     WEIGHTS_LOCATION: str = 'vision/weights/best.onnx'

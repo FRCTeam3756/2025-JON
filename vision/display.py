@@ -4,7 +4,7 @@ import numpy as np
 from typing import List, Tuple
 from config import DisplayConfig
 
-class VideoDisplay:
+class Display:
     @staticmethod
     def show_frame(window_name: str, frame: np.ndarray) -> None:
         """Displays the frame in a window."""
@@ -18,7 +18,7 @@ class VideoDisplay:
             cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
 
         for apriltag in apriltags:
-            frame = VideoDisplay.draw_apriltag(frame, apriltag)
+            frame = Display.draw_apriltag(frame, apriltag)
 
         return frame
     

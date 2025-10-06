@@ -6,16 +6,16 @@ from logging import Logger
 from typing import Optional, List
 from logs.logging_setup import setup_logger
 
-from config import *
+from config import CameraConfig, DebugConfig, DisplayConfig
 from networking.rio_communication import RoboRio
 from camera.monovision import MonoVision
-from vision.video_display import VideoDisplay
-from vision.video_processor import FrameProcessor
+from vision.display import Display
+from vision.processor import Processor
 from navigator.autoalgae import AlgaePickupCommand
 from navigator.autocoral import CoralPickupCommand
 from navigator.autoreef import ReefScoringCommand
 from navigator.autoprocessor import ProcessorScoringCommand
-from navigator.trackable_objects import *
+from navigator.trackable_objects import Algae, Coral
 from robotpy_apriltag import AprilTagDetection
 
 ###############################################################
@@ -24,7 +24,7 @@ def init():
     file_name = os.path.splitext(os.path.basename(__file__))[0]
     logger = setup_logger(file_name)
 
-    frame_processor = FrameProcessor()
+    frame_processor = Processor()
     roborio = RoboRio()
     autoalgae = AlgaePickupCommand()
     autocoral = CoralPickupCommand()
@@ -45,7 +45,7 @@ def init():
     logger.info("System initialized successfully.")
     return logger, frame_processor, roborio, autoalgae, autocoral, autoreef, autoprocessor, cap, out
 
-def testing_mainloop(logger: Logger, frame_processor: FrameProcessor, autoalgae: AlgaePickupCommand, autocoral: CoralPickupCommand, autoreef: ReefScoringCommand, autoprocessor: ProcessorScoringCommand, cap: cv2.VideoCapture, out: Optional[cv2.VideoWriter]) -> None:
+def testing_mainloop(logger: Logger, frame_processor: Processor, autoalgae: AlgaePickupCommand, autocoral: CoralPickupCommand, autoreef: ReefScoringCommand, autoprocessor: ProcessorScoringCommand, cap: cv2.VideoCapture, out: Optional[cv2.VideoWriter]) -> None:
     logger.info("Running in TESTING mode.")
 
     current_key: Optional[str] = None
@@ -89,7 +89,7 @@ def testing_mainloop(logger: Logger, frame_processor: FrameProcessor, autoalgae:
                 x, y, rot, success = autoalgae.get_algae_navigation_command(best_algae)
                 if success:
                     angle = MonoVision.get_angle_to_object_in_degrees(best_algae.x)
-                    VideoDisplay.draw_angle_line(frame, angle)
+                    Display.draw_angle_line(frame, angle)
                     logger.info(f'[TEST] Algae Nav - X: {x:.2f}, Y: {y:.2f}, ROT: {rot:.2f}')
                     if not DebugConfig.TESTING:
                         data = {
@@ -106,7 +106,7 @@ def testing_mainloop(logger: Logger, frame_processor: FrameProcessor, autoalgae:
             x, y, rot, success = autoprocessor.get_processor_navigation_command(processor_apriltag) 
             if success:
                 angle_to_processor = MonoVision.get_angle_to_object_in_degrees(processor_apriltag.getCenter().x)
-                VideoDisplay.draw_angle_line(frame, angle_to_processor)
+                Display.draw_angle_line(frame, angle_to_processor)
                 logger.info(f'[TEST] Target Movement - X: {x}, Y: {y}, ROT: {rot}')
                 if not DebugConfig.TESTING:
                     data = {
@@ -122,9 +122,9 @@ def testing_mainloop(logger: Logger, frame_processor: FrameProcessor, autoalgae:
         if DisplayConfig.SHOW_VIDEO:
             messages.append(current_key)
             messages.append(f'X: {x}, Y: {y}, R: {rot}')
-            VideoDisplay.insert_text_onto_frame(frame, messages)
+            Display.insert_text_onto_frame(frame, messages)
             messages.clear()
-            VideoDisplay.show_frame(DisplayConfig.WINDOW_TITLE, processed_frame)
+            Display.show_frame(DisplayConfig.WINDOW_TITLE, processed_frame)
         
         if DisplayConfig.SAVE_VIDEO and out:
             out.write(processed_frame)
@@ -133,7 +133,7 @@ def testing_mainloop(logger: Logger, frame_processor: FrameProcessor, autoalgae:
             break
 
 
-def competition_mainloop(logger: Logger, frame_processor: FrameProcessor, roborio: RoboRio, autoalgae: AlgaePickupCommand, autocoral: CoralPickupCommand, autoreef: ReefScoringCommand, autoprocessor: ProcessorScoringCommand, cap: cv2.VideoCapture, out: Optional[cv2.VideoWriter]) -> None:
+def competition_mainloop(logger: Logger, frame_processor: Processor, roborio: RoboRio, autoalgae: AlgaePickupCommand, autocoral: CoralPickupCommand, autoreef: ReefScoringCommand, autoprocessor: ProcessorScoringCommand, cap: cv2.VideoCapture, out: Optional[cv2.VideoWriter]) -> None:
     messages: List = []
     
     while cap.isOpened():
@@ -204,22 +204,22 @@ def competition_mainloop(logger: Logger, frame_processor: FrameProcessor, robori
                     target_coral = autocoral.compute_best_coral(corals)
                     if target_coral:
                         angle = MonoVision.get_angle_to_object_in_degrees(target_coral.x)
-                        VideoDisplay.draw_angle_line(frame, angle)
+                        Display.draw_angle_line(frame, angle)
                         logger.info(f'[TELEOP] Aligning to Coral — Angle: {angle:.2f}°')
 
                 # elif reef_apriltags:
                 #     target_apriltag = autoreef.compute_best_apriltag(reef_apriltags)
                 #     if target_apriltag:
                 #         angle = MonoVision.get_angle_to_object_in_degrees(target_apriltag.getCenter().x)
-                #         VideoDisplay.draw_angle_line(frame, angle)
+                #         Display.draw_angle_line(frame, angle)
                 #         logger.info(f'[TELEOP] Aligning to Processor — Angle: {angle:.2f}°')
             
         if DisplayConfig.SHOW_VIDEO:
             messages.append(task)
             messages.append(f'X: {x}, Y: {y}, R: {rot}')
-            VideoDisplay.insert_text_onto_frame(frame, messages)
+            Display.insert_text_onto_frame(frame, messages)
             messages = []
-            VideoDisplay.show_frame(DisplayConfig.WINDOW_TITLE, processed_frame)
+            Display.show_frame(DisplayConfig.WINDOW_TITLE, processed_frame)
         
         if DisplayConfig.SAVE_VIDEO and out:
             out.write(processed_frame)
