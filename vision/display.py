@@ -1,7 +1,9 @@
 import cv2
 import math
 import numpy as np
-from typing import List, Tuple
+from typing import List, Tuple, Union
+
+from robotpy_apriltag import AprilTagDetection
 from config import DisplayConfig
 
 class Display:
@@ -11,7 +13,7 @@ class Display:
         cv2.imshow(window_name, frame)
 
     @staticmethod
-    def annotate_frame(frame: np.ndarray, boxes: List[Tuple[int, int, int, int]], class_ids: List[int], apriltags) -> np.ndarray:
+    def annotate_frame(frame: np.ndarray, boxes: Union[np.ndarray, List[Tuple[int, int, int, int]]], class_ids: Union[np.ndarray, List[int]], apriltags: List[AprilTagDetection]) -> np.ndarray:
         """Annotate the frame with bounding boxes and labels."""
         for i, (x1, y1, x2, y2) in enumerate(boxes):
             color = DisplayConfig.LABEL_COLOURS.get(str(class_ids[i]), (255, 255, 255))
