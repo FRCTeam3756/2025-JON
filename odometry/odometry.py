@@ -178,7 +178,7 @@ class Odometry:
                 cv2.LINE_AA,
             )
 
-    def draw_objects(self, canvas, robot_x_m, robot_y_m, robot_heading_rad, fov_rad, range_m):
+    def draw_objects(self, canvas):
         """Draw all additional tracked objects."""
         color_map = {
             Algae: (0, 255, 0),
@@ -187,16 +187,31 @@ class Odometry:
             Robot: (255, 0, 255)
         }
 
-        MM_TO_M = 0.001
-
-        to_remove = []
-
         for cls, objs in list(self.game_pieces._data.items()):
             for obj in list(objs):
                 if obj.distance_in_mm is None or obj.angle_in_degrees is None:
                     continue
                 
-                dist_m = obj.distance_in_mm * MM_TO_M
+                px, py = self.field_to_pixel(obj_x_m, obj_y_m)
+                cv2.circle(canvas, (px, py), 6, color_map.get(cls, (200, 200, 200)), -1)
+                cv2.putText(
+                    canvas,
+                    cls.__name__,
+                    (px + 8, py - 8),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.4,
+                    color_map.get(cls, (200, 200, 200)),
+                    1,
+                    cv2.LINE_AA,
+                )
+
+    def update_objects(self, fov_rad, range_m, robot_x_m, robot_y_m, robot_heading_rad) -> None:
+        for cls, objs in list(self.game_pieces._data.items()):
+            for obj in list(objs):
+                if obj.distance_in_mm is None or obj.angle_in_degrees is None:
+                    continue
+                
+                dist_m = obj.distance_in_mm * 0.001
                 rel_angle_rad = math.radians(obj.angle_in_degrees)
                 abs_angle_rad = robot_heading_rad + rel_angle_rad
                 obj_x_m = robot_x_m + dist_m * math.cos(abs_angle_rad)
@@ -204,24 +219,8 @@ class Odometry:
 
                 visible = self.object_visible(robot_x_m, robot_y_m, robot_heading_rad, obj_x_m, obj_y_m, fov_rad, range_m)
 
-                if visible:
-                    px, py = self.field_to_pixel(obj_x_m, obj_y_m)
-                    cv2.circle(canvas, (px, py), 6, color_map.get(cls, (200, 200, 200)), -1)
-                    cv2.putText(
-                        canvas,
-                        cls.__name__,
-                        (px + 8, py - 8),
-                        cv2.FONT_HERSHEY_SIMPLEX,
-                        0.4,
-                        color_map.get(cls, (200, 200, 200)),
-                        1,
-                        cv2.LINE_AA,
-                    )
-                else:
-                    to_remove.append((cls, obj))
-
-        for cls, obj in to_remove:
-            self.game_pieces._data[cls].remove(obj)
+                if not visible:
+                    self.game_pieces._data[cls].remove(obj)
 
     def draw_vision_cone(self, canvas, x_m, y_m, heading_rad):
         """Draws a semi-transparent grey cone representing robot vision."""
@@ -270,12 +269,11 @@ class Odometry:
         canvas = np.zeros((self.IMG_H, self.IMG_W, 3), np.uint8)
         self.draw_field(canvas)
         self.draw_apriltags(canvas)
-
         self.draw_ramferno(canvas, robot_x, robot_y, robot_heading)
         
         fov_rad, range_m = self.draw_vision_cone(canvas, robot_x, robot_y, robot_heading)
-
-        self.draw_objects(canvas, robot_x, robot_y, robot_heading, fov_rad, range_m)
+        self.update_objects(fov_rad, range_m)
+        self.draw_objects(canvas, robot_x, robot_y, robot_heading)
 
         return canvas
 
