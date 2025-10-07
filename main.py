@@ -1,7 +1,6 @@
 import os
 import cv2
 import logging
-import keyboard
 from logging import Logger
 from typing import Optional, List
 from logs.logging_setup import setup_logger
@@ -61,10 +60,11 @@ def testing_mainloop(logger: Logger, frame_processor: Processor, autoalgae: Alga
         processed_frame, game_pieces, apriltags = frame_processor.process_frame(frame)
         frame_processor.calculate_frame_rate()
         
-        for key in DebugConfig.TASK_KEYS:
-            if keyboard.is_pressed(key):
-                current_key = key
-                break
+        keycode = cv2.waitKey(1) & 0xFF
+        if keycode != 255:  # no key pressed
+            key_char = chr(keycode)
+            if key_char in DebugConfig.TASK_KEYS:
+                current_key = key_char
         if not current_key:
             current_key = DebugConfig.DEFAULT_KEY
         

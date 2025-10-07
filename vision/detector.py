@@ -5,7 +5,7 @@ from logs.logging_setup import setup_logger
 
 import torch
 import numpy as np
-from ultralytics import YOLO
+from ultralytics.models import YOLO
 
 ###############################################################
 
@@ -16,7 +16,7 @@ class Detector:
         self.logger = logging.getLogger(file_name)
 
         self.device: torch.device = torch.device(
-            'cuda' if torch.cuda.is_available() else 'cpu')
+            'cuda' if torch.cuda.is_available() else 'mps' if torch.mps.is_available() else 'cpu')
         self.model: YOLO = YOLO(weights_location, task='detect')
         self.confidence_threshold: float = confidence_threshold
 
