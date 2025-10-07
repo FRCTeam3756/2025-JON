@@ -27,7 +27,7 @@ class Processor:
         self.logger = logging.getLogger(file_name)
 
         self.logger.info(
-            f'Using device: {"GPU" if torch.cuda.is_available() else "CPU"}')
+            f'Using device: {"GPU" if torch.cuda.is_available() else "MPS" if torch.mps.is_available() else "CPU"}')
         self.yolo_detector: Detector = Detector(
             DetectorConfig.WEIGHTS_LOCATION, DetectorConfig.CONFIDENCE_THRESHOLD)
         self.apriltag_detector: AprilTagFinder = AprilTagFinder()

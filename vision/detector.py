@@ -25,7 +25,7 @@ class Detector:
     def detect(self, frame: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Run detection on a frame and return processed results."""
         with torch.no_grad():
-            results = self.model.predict(frame)[0]
+            results = self.model.predict(frame, half=True)[0]
         return self.extract_detections(results)
 
     def extract_detections(self, results) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
