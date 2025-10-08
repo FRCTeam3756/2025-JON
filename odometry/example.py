@@ -44,7 +44,7 @@ if __name__ == "__main__":
             frame = odo.process_frame(x, y, heading)
 
             cv2.imshow(odo.WINDOW_NAME, frame)
-            if cv2.waitKey(1) & 0xFF == 27:
+            if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
     finally:
         cv2.destroyAllWindows()

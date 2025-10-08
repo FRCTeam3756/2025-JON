@@ -46,9 +46,8 @@ class Odometry:
 
     def __init__(self):
         self.fps = 30
-        self.frame_time = 1.0 / 30
-        self.target_pos = (self.FIELD_WIDTH_M * 0.85,
-                           self.FIELD_HEIGHT_M * 0.75)
+        self.target_x = self.FIELD_WIDTH_M * 0.85
+        self.target_y = self.FIELD_HEIGHT_M * 0.75
         self.game_pieces = GamePieces()
 
         self.APRILTAG_POSITIONS = {
@@ -160,25 +159,23 @@ class Odometry:
         cv2.line(canvas, tuple(front_pts[0]),
                  tuple(front_pts[1]), (0, 0, 255), 3)
 
-        if self.target_pos:
-            tx_m, ty_m = self.target_pos
-            tx, ty = self.field_to_pixel(tx_m, ty_m)
-            cv2.circle(canvas, (tx, ty), 6, (0, 255, 0), -1)
-            cv2.line(canvas, (cx, cy), (tx, ty), (0, 200, 0), 1)
-            dist = math.hypot(tx_m - x_m, ty_m - y_m)
-            midx, midy = (cx + tx) // 2, (cy + ty) // 2
-            cv2.putText(
-                canvas,
-                f"{dist:.2f}m",
-                (midx, midy - 8),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.4,
-                (220, 220, 220),
-                1,
-                cv2.LINE_AA,
-            )
+        tx, ty = self.field_to_pixel(self.target_x, self.target_y)
+        cv2.circle(canvas, (tx, ty), 6, (0, 255, 0), -1)
+        cv2.line(canvas, (cx, cy), (tx, ty), (0, 200, 0), 1)
+        dist = math.hypot(self.target_x - x_m, self.target_y - y_m)
+        midx, midy = (cx + tx) // 2, (cy + ty) // 2
+        cv2.putText(
+            canvas,
+            f"{dist:.2f}m",
+            (midx, midy - 8),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.4,
+            (220, 220, 220),
+            1,
+            cv2.LINE_AA,
+        )
 
-    def draw_objects(self, canvas):
+    def draw_objects(self, canvas, robot_x, robot_y, robot_heading):
         """Draw all additional tracked objects."""
         color_map = {
             Algae: (0, 255, 0),
@@ -191,6 +188,12 @@ class Odometry:
             for obj in list(objs):
                 if obj.distance_in_mm is None or obj.angle_in_degrees is None:
                     continue
+
+                dist_m = obj.distance_in_mm * 0.001
+                rel_angle_rad = math.radians(obj.angle_in_degrees)
+                abs_angle_rad = robot_heading + rel_angle_rad
+                obj_x_m = robot_x + dist_m * math.cos(abs_angle_rad)
+                obj_y_m = robot_y + dist_m * math.sin(abs_angle_rad)
                 
                 px, py = self.field_to_pixel(obj_x_m, obj_y_m)
                 cv2.circle(canvas, (px, py), 6, color_map.get(cls, (200, 200, 200)), -1)
@@ -272,7 +275,7 @@ class Odometry:
         self.draw_ramferno(canvas, robot_x, robot_y, robot_heading)
         
         fov_rad, range_m = self.draw_vision_cone(canvas, robot_x, robot_y, robot_heading)
-        self.update_objects(fov_rad, range_m)
+        self.update_objects(fov_rad, range_m, robot_x, robot_y, robot_heading)
         self.draw_objects(canvas, robot_x, robot_y, robot_heading)
 
         return canvas
@@ -285,7 +288,7 @@ if __name__ == "__main__":
             frame = odo.process_frame(1, 1, 1)
 
             cv2.imshow(odo.WINDOW_NAME, frame)
-            if cv2.waitKey(1) & 0xFF == 27:
+            if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
     finally:
         cv2.destroyAllWindows()
