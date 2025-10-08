@@ -2,7 +2,7 @@ import os
 import cv2
 import logging
 from logging import Logger
-from typing import Optional, List
+from typing import Optional, List, Tuple
 from logs.logging_setup import setup_logger
 
 from config import CameraConfig, DebugConfig, DisplayConfig
@@ -19,7 +19,7 @@ from robotpy_apriltag import AprilTagDetection
 
 ###############################################################
 
-def init():
+def init() -> Tuple[Logger, Processor, RoboRio, AlgaePickupCommand, CoralPickupCommand, ReefScoringCommand, ProcessorScoringCommand, cv2.VideoCapture, Optional[cv2.VideoWriter]]:
     file_name = os.path.splitext(os.path.basename(__file__))[0]
     logger = setup_logger(file_name)
 

@@ -1,16 +1,17 @@
 import cv2
 import math
 import numpy as np
+from typing import Tuple
 
 from navigator.trackable_objects import Algae, Coral, Cage, GamePieces, Robot
 
 
 class Odometry:
-    FIELD_WIDTH_M = 16.4592
-    FIELD_HEIGHT_M = 8.2296
+    FIELD_WIDTH_M = 17.55
+    FIELD_HEIGHT_M = 8.05
     PIXELS_PER_METER = 70
     MARGIN_PX = 20
-    ROBOT_RADIUS_M = 0.45
+    ROBOT_RADIUS_M = 0.71
     ROBOT_COLOR = (0, 125, 255)
     ROBOT_ARROW_LENGTH_M = 1.0
     TAG_COLORS = [(255, 0, 0), (0, 255, 255)]
@@ -44,7 +45,7 @@ class Odometry:
         22: (193.10, 129.97, 300),
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.fps = 30
         self.target_x = self.FIELD_WIDTH_M * 0.85
         self.target_y = self.FIELD_HEIGHT_M * 0.75
@@ -64,12 +65,12 @@ class Odometry:
 
         self.TAG_SIZE_M = 0.35
 
-    def field_to_pixel(self, x_m, y_m):
+    def camera_to_canvas(self, x_m: float, y_m: float) -> Tuple[int, int]:
         px = int(self.MARGIN_PX + x_m * self.PIXELS_PER_METER)
         py = int(self.IMG_H - (self.MARGIN_PX + y_m * self.PIXELS_PER_METER))
         return px, py
 
-    def draw_field(self, canvas):
+    def draw_field(self, canvas: np.ndarray) -> None:
         top_left = (self.MARGIN_PX, self.MARGIN_PX)
         bottom_right = (self.IMG_W - self.MARGIN_PX,
                         self.IMG_H - self.MARGIN_PX)
@@ -79,32 +80,22 @@ class Odometry:
             50,
         )
         cv2.rectangle(canvas, top_left, bottom_right, (255, 255, 255), 2)
-        cx_px = int(self.MARGIN_PX + (self.FIELD_WIDTH_M / 2)
+        canvas_x_px = int(self.MARGIN_PX + (self.FIELD_WIDTH_M / 2)
                     * self.PIXELS_PER_METER)
         cv2.line(
             canvas,
-            (cx_px, self.MARGIN_PX),
-            (cx_px, self.IMG_H - self.MARGIN_PX),
+            (canvas_x_px, self.MARGIN_PX),
+            (canvas_x_px, self.IMG_H - self.MARGIN_PX),
             (200, 200, 200),
             1,
         )
-        cv2.putText(
-            canvas,
-            f"Field: {self.FIELD_WIDTH_M:.2f}m x {self.FIELD_HEIGHT_M:.2f}m",
-            (self.MARGIN_PX + 6, self.MARGIN_PX + 20),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.5,
-            (230, 230, 230),
-            1,
-            cv2.LINE_AA,
-        )
 
-    def draw_apriltags(self, canvas):
+    def draw_apriltags(self, canvas: np.ndarray) -> None:
         half_px = int((self.TAG_SIZE_M * self.PIXELS_PER_METER) / 2)
         for i, (tag_id, (x_m, y_m, rot_deg)) in enumerate(
             self.APRILTAG_POSITIONS.items()
         ):
-            px, py = self.field_to_pixel(x_m, y_m)
+            px, py = self.camera_to_canvas(x_m, y_m)
             color = self.TAG_COLORS[i % len(self.TAG_COLORS)]
             cv2.rectangle(
                 canvas,
@@ -135,8 +126,8 @@ class Odometry:
             fy = int(py - math.sin(rad) * half_px * 1.3)
             cv2.line(canvas, (px, py), (fx, fy), (0, 0, 0), 2)
 
-    def draw_ramferno(self, canvas, x_m, y_m, heading_rad):
-        cx, cy = self.field_to_pixel(x_m, y_m)
+    def draw_ramferno(self, canvas: np.ndarray, robot_x_m: float, robot_y_m: float, robot_heading_rad: float) -> None:
+        robot_field_x, robot_field_y = self.camera_to_canvas(robot_x_m, robot_y_m)
         r_px = int(self.ROBOT_RADIUS_M * self.PIXELS_PER_METER)
         half_side = r_px
         corners = [
@@ -146,10 +137,10 @@ class Odometry:
             (-half_side, half_side),
         ]
 
-        def rot(lx, ly):
-            rx = lx * math.cos(heading_rad) - ly * math.sin(heading_rad)
-            ry = lx * math.sin(heading_rad) + ly * math.cos(heading_rad)
-            return int(cx + rx), int(cy - ry)
+        def rot(lx, ly) -> Tuple[int, int]:
+            rx = lx * math.cos(robot_heading_rad) - ly * math.sin(robot_heading_rad)
+            ry = lx * math.sin(robot_heading_rad) + ly * math.cos(robot_heading_rad)
+            return int(robot_field_x + rx), int(robot_field_y - ry)
 
         pts = np.array([rot(x, y) for x, y in corners], np.int32)
         cv2.fillConvexPoly(canvas, pts, self.ROBOT_COLOR)
@@ -160,11 +151,13 @@ class Odometry:
         cv2.line(canvas, tuple(front_pts[0]),
                  tuple(front_pts[1]), (0, 0, 255), 3)
 
-        tx, ty = self.field_to_pixel(self.target_x, self.target_y)
+    def draw_target_position(self, canvas: np.ndarray, robot_x_m: float, robot_y_m: float) -> None:
+        robot_canvas_x, robot_canvas_y = self.camera_to_canvas(robot_x_m, robot_y_m)
+        tx, ty = self.camera_to_canvas(self.target_x, self.target_y)
         cv2.circle(canvas, (tx, ty), 6, (0, 255, 0), -1)
-        cv2.line(canvas, (cx, cy), (tx, ty), (0, 200, 0), 1)
-        dist = math.hypot(self.target_x - x_m, self.target_y - y_m)
-        midx, midy = (cx + tx) // 2, (cy + ty) // 2
+        cv2.line(canvas, (robot_canvas_x, robot_canvas_y), (tx, ty), (0, 200, 0), 1)
+        dist = math.hypot(self.target_x - robot_x_m, self.target_y - robot_y_m)
+        midx, midy = (robot_canvas_x + tx) // 2, (robot_canvas_y + ty) // 2
         cv2.putText(
             canvas,
             f"{dist:.2f}m",
@@ -176,7 +169,7 @@ class Odometry:
             cv2.LINE_AA,
         )
 
-    def draw_detections(self, canvas, robot_x, robot_y, robot_heading):
+    def draw_detections(self, canvas: np.ndarray, robot_x_m, robot_y_m, robot_heading_rad):
         """Draw all additional tracked objects."""
         color_map = {
             Algae: (0, 255, 0),
@@ -191,10 +184,10 @@ class Odometry:
                     continue
 
                 obj_x_m, obj_y_m = self.object_world_coords(
-                    obj.distance_in_mm, obj.angle_in_degrees, robot_x, robot_y, robot_heading
+                    obj.distance_in_mm, obj.angle_in_degrees, robot_x_m, robot_y_m, robot_heading_rad
                 )
 
-                px, py = self.field_to_pixel(obj_x_m, obj_y_m)
+                px, py = self.camera_to_canvas(obj_x_m, obj_y_m)
                 color = color_map.get(cls, (200, 200, 200))
                 cv2.circle(canvas, (px, py), 6, color, -1)
                 cv2.putText(
@@ -208,27 +201,27 @@ class Odometry:
                     cv2.LINE_AA,
                 )
 
-    def draw_vision_cone(self, canvas, x_m, y_m, heading_rad) -> None:
+    def draw_vision_cone(self, canvas: np.ndarray, robot_x_m, robot_y_m, robot_heading_rad) -> None:
         """Draws a semi-transparent grey cone representing robot vision."""
-        left_angle = heading_rad - self.VISION_FOV_RAD / 2
-        right_angle = heading_rad + self.VISION_FOV_RAD / 2
+        left_angle = robot_heading_rad - self.VISION_FOV_RAD / 2
+        right_angle = robot_heading_rad + self.VISION_FOV_RAD / 2
 
-        cx, cy = self.field_to_pixel(x_m, y_m)
-        end_left = self.field_to_pixel(
-            x_m + self.VISION_RANGE_M * math.cos(left_angle),
-            y_m + self.VISION_RANGE_M * math.sin(left_angle)
+        robot_canvas_x, robot_canvas_y = self.camera_to_canvas(robot_x_m, robot_y_m)
+        end_left = self.camera_to_canvas(
+            robot_x_m + self.VISION_RANGE_M * math.cos(left_angle),
+            robot_y_m + self.VISION_RANGE_M * math.sin(left_angle)
         )
-        end_right = self.field_to_pixel(
-            x_m + self.VISION_RANGE_M * math.cos(right_angle),
-            y_m + self.VISION_RANGE_M * math.sin(right_angle)
+        end_right = self.camera_to_canvas(
+            robot_x_m + self.VISION_RANGE_M * math.cos(right_angle),
+            robot_y_m + self.VISION_RANGE_M * math.sin(right_angle)
         )
-        cone_pts = np.array([[cx, cy], end_left, end_right], np.int32)
+        cone_pts = np.array([[robot_canvas_x, robot_canvas_y], end_left, end_right], np.int32)
 
         overlay = canvas.copy()
         cv2.fillConvexPoly(overlay, cone_pts, (100, 100, 100))
         cv2.addWeighted(overlay, 0.3, canvas, 0.7, 0, canvas)
 
-    def object_world_coords(self, distance_in_mm: float, angle_in_degrees: float, robot_x_m: float, robot_y_m: float, robot_heading_rad: float) -> tuple[float, float]:
+    def object_world_coords(self, distance_in_mm: float, angle_in_degrees: float, robot_x_m: float, robot_y_m: float, robot_heading_rad: float) -> Tuple[float, float]:
         dist_m = distance_in_mm * 0.001
         rel_angle_rad = math.radians(angle_in_degrees)
         abs_angle_rad = robot_heading_rad + rel_angle_rad
@@ -236,7 +229,7 @@ class Odometry:
         obj_y_m = robot_y_m + dist_m * math.sin(abs_angle_rad)
         return obj_x_m, obj_y_m
 
-    def object_visible(self, robot_x_m, robot_y_m, robot_heading_rad, obj_x_m, obj_y_m):
+    def object_visible(self, robot_x_m: float, robot_y_m: float, robot_heading_rad: float, obj_x_m: float, obj_y_m: float) -> bool:
         """Checks if object is within robot's vision cone."""
         dx = obj_x_m - robot_x_m
         dy = obj_y_m - robot_y_m
@@ -270,7 +263,9 @@ class Odometry:
                 if not visible:
                     self.game_pieces._data[cls].remove(obj)
     
-    def render_frame(self, canvas: np.ndarray, robot_x_m: float, robot_y_m: float, robot_heading_rad: float) -> np.ndarray:
+    def render_frame(self, robot_x_m: float, robot_y_m: float, robot_heading_rad: float) -> np.ndarray:
+        canvas = np.zeros((self.IMG_H, self.IMG_W, 3), np.uint8)
+
         self.draw_field(canvas)
         self.draw_apriltags(canvas)
         self.draw_ramferno(canvas, robot_x_m, robot_y_m, robot_heading_rad)
@@ -280,10 +275,8 @@ class Odometry:
         return canvas
 
     def process_frame(self, robot_x_m: float, robot_y_m: float, robot_heading_rad: float) -> np.ndarray:
-        canvas = np.zeros((self.IMG_H, self.IMG_W, 3), np.uint8)
-
         self.update_past_detections(robot_x_m, robot_y_m, robot_heading_rad)
-        frame = self.render_frame(canvas, robot_x_m, robot_y_m, robot_heading_rad)
+        frame = self.render_frame(robot_x_m, robot_y_m, robot_heading_rad)
 
         return frame
 

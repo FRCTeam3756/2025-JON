@@ -59,7 +59,7 @@ class Robot(Object):
                 self.acceleration_y = (new_velocity_y - self.velocity_y) / time_diff
             self.velocity_x, self.velocity_y = new_velocity_x, new_velocity_y
     
-    def calculate_speed(self):
+    def calculate_speed(self) -> Optional[float]:
         if self.velocity_x is not None and self.velocity_y is not None:
             return math.sqrt(self.velocity_x ** 2 + self.velocity_y ** 2)
         return None
