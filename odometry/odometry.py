@@ -15,7 +15,7 @@ class Odometry:
     ROBOT_ARROW_LENGTH_M = 1.0
     TAG_COLORS = [(255, 0, 0), (0, 255, 255)]
     INCH_TO_M = 0.0254
-    VISION_FOV_DEG = 60
+    VISION_FOV_RAD = math.radians(60)
     VISION_RANGE_M = 4.0
     WINDOW_NAME = "FRC 2025 Odometry Demo"
 
@@ -62,6 +62,8 @@ class Odometry:
             int(self.FIELD_HEIGHT_M * self.PIXELS_PER_METER) + 2 * self.MARGIN_PX
         )
 
+        self.TAG_SIZE_M = 0.35
+
     def field_to_pixel(self, x_m, y_m):
         px = int(self.MARGIN_PX + x_m * self.PIXELS_PER_METER)
         py = int(self.IMG_H - (self.MARGIN_PX + y_m * self.PIXELS_PER_METER))
@@ -98,8 +100,7 @@ class Odometry:
         )
 
     def draw_apriltags(self, canvas):
-        tag_size_m = 0.35
-        half_px = int((tag_size_m * self.PIXELS_PER_METER) / 2)
+        half_px = int((self.TAG_SIZE_M * self.PIXELS_PER_METER) / 2)
         for i, (tag_id, (x_m, y_m, rot_deg)) in enumerate(
             self.APRILTAG_POSITIONS.items()
         ):
@@ -189,94 +190,96 @@ class Odometry:
                 if obj.distance_in_mm is None or obj.angle_in_degrees is None:
                     continue
 
-                dist_m = obj.distance_in_mm * 0.001
-                rel_angle_rad = math.radians(obj.angle_in_degrees)
-                abs_angle_rad = robot_heading + rel_angle_rad
-                obj_x_m = robot_x + dist_m * math.cos(abs_angle_rad)
-                obj_y_m = robot_y + dist_m * math.sin(abs_angle_rad)
-                
+                obj_x_m, obj_y_m = self.object_world_coords(
+                    obj.distance_in_mm, obj.angle_in_degrees, robot_x, robot_y, robot_heading
+                )
+
                 px, py = self.field_to_pixel(obj_x_m, obj_y_m)
-                cv2.circle(canvas, (px, py), 6, color_map.get(cls, (200, 200, 200)), -1)
+                color = color_map.get(cls, (200, 200, 200))
+                cv2.circle(canvas, (px, py), 6, color, -1)
                 cv2.putText(
                     canvas,
                     cls.__name__,
                     (px + 8, py - 8),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     0.4,
-                    color_map.get(cls, (200, 200, 200)),
+                    color,
                     1,
                     cv2.LINE_AA,
                 )
 
-    def update_objects(self, fov_rad, range_m, robot_x_m, robot_y_m, robot_heading_rad) -> None:
+    def update_objects(self, robot_x_m, robot_y_m, robot_heading_rad) -> None:
         for cls, objs in list(self.game_pieces._data.items()):
             for obj in list(objs):
                 if obj.distance_in_mm is None or obj.angle_in_degrees is None:
                     continue
-                
-                dist_m = obj.distance_in_mm * 0.001
-                rel_angle_rad = math.radians(obj.angle_in_degrees)
-                abs_angle_rad = robot_heading_rad + rel_angle_rad
-                obj_x_m = robot_x_m + dist_m * math.cos(abs_angle_rad)
-                obj_y_m = robot_y_m + dist_m * math.sin(abs_angle_rad)
 
-                visible = self.object_visible(robot_x_m, robot_y_m, robot_heading_rad, obj_x_m, obj_y_m, fov_rad, range_m)
+                obj_x_m, obj_y_m = self.object_world_coords(
+                    obj.distance_in_mm, obj.angle_in_degrees, robot_x_m, robot_y_m, robot_heading_rad
+                )
+
+                visible = self.object_visible(
+                    robot_x_m, robot_y_m, robot_heading_rad, obj_x_m, obj_y_m
+                )
 
                 if not visible:
                     self.game_pieces._data[cls].remove(obj)
 
-    def draw_vision_cone(self, canvas, x_m, y_m, heading_rad):
+    def draw_vision_cone(self, canvas, x_m, y_m, heading_rad) -> None:
         """Draws a semi-transparent grey cone representing robot vision."""
-        fov = math.radians(60)
-        range_m = 4.0
-
-        left_angle = heading_rad - fov / 2
-        right_angle = heading_rad + fov / 2
+        left_angle = heading_rad - self.VISION_FOV_RAD / 2
+        right_angle = heading_rad + self.VISION_FOV_RAD / 2
 
         cx, cy = self.field_to_pixel(x_m, y_m)
         end_left = self.field_to_pixel(
-            x_m + range_m * math.cos(left_angle),
-            y_m + range_m * math.sin(left_angle)
+            x_m + self.VISION_RANGE_M * math.cos(left_angle),
+            y_m + self.VISION_RANGE_M * math.sin(left_angle)
         )
         end_right = self.field_to_pixel(
-            x_m + range_m * math.cos(right_angle),
-            y_m + range_m * math.sin(right_angle)
+            x_m + self.VISION_RANGE_M * math.cos(right_angle),
+            y_m + self.VISION_RANGE_M * math.sin(right_angle)
         )
-
-        cone_pts = np.array([ [cx, cy], end_left, end_right ], np.int32)
+        cone_pts = np.array([[cx, cy], end_left, end_right], np.int32)
 
         overlay = canvas.copy()
         cv2.fillConvexPoly(overlay, cone_pts, (100, 100, 100))
         cv2.addWeighted(overlay, 0.3, canvas, 0.7, 0, canvas)
 
-        return fov, range_m
+    def object_world_coords(self, distance_in_mm: float, angle_in_degrees: float, robot_x_m: float, robot_y_m: float, robot_heading_rad: float) -> tuple[float, float]:
+        dist_m = distance_in_mm * 0.001
+        rel_angle_rad = math.radians(angle_in_degrees)
+        abs_angle_rad = robot_heading_rad + rel_angle_rad
+        obj_x_m = robot_x_m + dist_m * math.cos(abs_angle_rad)
+        obj_y_m = robot_y_m + dist_m * math.sin(abs_angle_rad)
+        return obj_x_m, obj_y_m
 
-    def object_visible(self, robot_x_m, robot_y_m, robot_heading_rad, obj_x_m, obj_y_m, fov_rad, range_m):
+    def object_visible(self, robot_x_m, robot_y_m, robot_heading_rad, obj_x_m, obj_y_m):
         """Checks if object is within robot's vision cone."""
         dx = obj_x_m - robot_x_m
         dy = obj_y_m - robot_y_m
         dist = math.hypot(dx, dy)
-        if dist > range_m:
+        if dist > self.VISION_RANGE_M:
             return False
         
         angle_to_obj = math.atan2(dy, dx)
         angle_diff = (angle_to_obj - robot_heading_rad + math.pi) % (2 * math.pi) - math.pi
         
-        return abs(angle_diff) <= fov_rad / 2
+        return abs(angle_diff) <= self.VISION_FOV_RAD / 2
     
     def initialize_window(self) -> None:
         cv2.namedWindow(self.WINDOW_NAME, cv2.WINDOW_NORMAL)
         cv2.resizeWindow(self.WINDOW_NAME, self.IMG_W, self.IMG_H)
 
-    def process_frame(self, robot_x: float, robot_y: float, robot_heading: float) -> np.ndarray:
+    def process_frame(self, robot_x_m: float, robot_y_m: float, robot_heading_rad: float) -> np.ndarray:
         canvas = np.zeros((self.IMG_H, self.IMG_W, 3), np.uint8)
+
+        self.update_objects(robot_x_m, robot_y_m, robot_heading_rad)
+
         self.draw_field(canvas)
         self.draw_apriltags(canvas)
-        self.draw_ramferno(canvas, robot_x, robot_y, robot_heading)
-        
-        fov_rad, range_m = self.draw_vision_cone(canvas, robot_x, robot_y, robot_heading)
-        self.update_objects(fov_rad, range_m, robot_x, robot_y, robot_heading)
-        self.draw_objects(canvas, robot_x, robot_y, robot_heading)
+        self.draw_ramferno(canvas, robot_x_m, robot_y_m, robot_heading_rad)
+        self.draw_vision_cone(canvas, robot_x_m, robot_y_m, robot_heading_rad)
+        self.draw_objects(canvas, robot_x_m, robot_y_m, robot_heading_rad)
 
         return canvas
 
