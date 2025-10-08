@@ -176,7 +176,7 @@ class Odometry:
             cv2.LINE_AA,
         )
 
-    def draw_objects(self, canvas, robot_x, robot_y, robot_heading):
+    def draw_detections(self, canvas, robot_x, robot_y, robot_heading):
         """Draw all additional tracked objects."""
         color_map = {
             Algae: (0, 255, 0),
@@ -207,23 +207,6 @@ class Odometry:
                     1,
                     cv2.LINE_AA,
                 )
-
-    def update_objects(self, robot_x_m, robot_y_m, robot_heading_rad) -> None:
-        for cls, objs in list(self.game_pieces._data.items()):
-            for obj in list(objs):
-                if obj.distance_in_mm is None or obj.angle_in_degrees is None:
-                    continue
-
-                obj_x_m, obj_y_m = self.object_world_coords(
-                    obj.distance_in_mm, obj.angle_in_degrees, robot_x_m, robot_y_m, robot_heading_rad
-                )
-
-                visible = self.object_visible(
-                    robot_x_m, robot_y_m, robot_heading_rad, obj_x_m, obj_y_m
-                )
-
-                if not visible:
-                    self.game_pieces._data[cls].remove(obj)
 
     def draw_vision_cone(self, canvas, x_m, y_m, heading_rad) -> None:
         """Draws a semi-transparent grey cone representing robot vision."""
@@ -270,18 +253,39 @@ class Odometry:
         cv2.namedWindow(self.WINDOW_NAME, cv2.WINDOW_NORMAL)
         cv2.resizeWindow(self.WINDOW_NAME, self.IMG_W, self.IMG_H)
 
-    def process_frame(self, robot_x_m: float, robot_y_m: float, robot_heading_rad: float) -> np.ndarray:
-        canvas = np.zeros((self.IMG_H, self.IMG_W, 3), np.uint8)
+    def update_past_detections(self, robot_x_m, robot_y_m, robot_heading_rad) -> None:
+        for cls, objs in list(self.game_pieces._data.items()):
+            for obj in list(objs):
+                if obj.distance_in_mm is None or obj.angle_in_degrees is None:
+                    continue
 
-        self.update_objects(robot_x_m, robot_y_m, robot_heading_rad)
+                obj_x_m, obj_y_m = self.object_world_coords(
+                    obj.distance_in_mm, obj.angle_in_degrees, robot_x_m, robot_y_m, robot_heading_rad
+                )
 
+                visible = self.object_visible(
+                    robot_x_m, robot_y_m, robot_heading_rad, obj_x_m, obj_y_m
+                )
+
+                if not visible:
+                    self.game_pieces._data[cls].remove(obj)
+    
+    def render_frame(self, canvas: np.ndarray, robot_x_m: float, robot_y_m: float, robot_heading_rad: float) -> np.ndarray:
         self.draw_field(canvas)
         self.draw_apriltags(canvas)
         self.draw_ramferno(canvas, robot_x_m, robot_y_m, robot_heading_rad)
         self.draw_vision_cone(canvas, robot_x_m, robot_y_m, robot_heading_rad)
-        self.draw_objects(canvas, robot_x_m, robot_y_m, robot_heading_rad)
+        self.draw_detections(canvas, robot_x_m, robot_y_m, robot_heading_rad)
 
         return canvas
+
+    def process_frame(self, robot_x_m: float, robot_y_m: float, robot_heading_rad: float) -> np.ndarray:
+        canvas = np.zeros((self.IMG_H, self.IMG_W, 3), np.uint8)
+
+        self.update_past_detections(robot_x_m, robot_y_m, robot_heading_rad)
+        frame = self.render_frame(canvas, robot_x_m, robot_y_m, robot_heading_rad)
+
+        return frame
 
 if __name__ == "__main__":
     odo = Odometry()
