@@ -2,16 +2,17 @@ import math
 import time
 import cv2
 from random import randint
+from config import FieldConfig
 
 from navigator.trackable_objects import Algae, Coral
 from odometry.odometry import Odometry
 
-def robot_pose_at_time(odo: Odometry, t):
+def robot_pose_at_time(t):
     """Return (x,y,heading) for a looping figure-8 path."""
-    cx = odo.FIELD_WIDTH_M / 2
-    cy = odo.FIELD_HEIGHT_M / 2
-    ax = odo.FIELD_WIDTH_M * 0.35
-    ay = odo.FIELD_HEIGHT_M * 0.35
+    cx = FieldConfig.FIELD_WIDTH_M / 2
+    cy = FieldConfig.FIELD_HEIGHT_M / 2
+    ax = FieldConfig.FIELD_WIDTH_M * 0.35
+    ay = FieldConfig.FIELD_HEIGHT_M * 0.35
     omega = 0.5
     theta = omega * t
     x = cx + ax * math.sin(theta)
@@ -38,8 +39,8 @@ if __name__ == "__main__":
     try:
         t0 = time.time()
         while True:
-            Δt = time.time() - t0
-            x, y, heading = robot_pose_at_time(odo, Δt)
+            total_time = time.time() - t0
+            x, y, heading = robot_pose_at_time(total_time)
 
             frame = odo.process_frame(x, y, heading)
 

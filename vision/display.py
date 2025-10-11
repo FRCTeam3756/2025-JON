@@ -44,7 +44,7 @@ class Display:
         cv2.line(frame, start_point, (end_x, end_y), (0, 155, 255), 2)
 
     @staticmethod
-    def draw_apriltag(frame, detection):
+    def draw_apriltag(frame: np.ndarray, detection):
         """Draws the tag's bounding box, center, and ID on the frame."""
         for i in range(4):
             j = (i + 1) % 4

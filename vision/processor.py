@@ -9,7 +9,7 @@ import torch
 import torchvision
 import numpy as np
 
-from config import AutoAlgaeConfig, AutoCoralConfig, AutoHangConfig, AutoRobotConfig, CameraConfig, DetectorConfig, DisplayConfig, LoggingConfig 
+from config import AutoAlgaeConfig, AutoCoralConfig, AutoHangConfig, AutoRobotConfig, CameraConfig, DetectorConfig, DisplayConfig, LoggingConfig
 from .detector import Detector
 from .display import Display
 from apriltags.apriltag_finder import AprilTagFinder
@@ -36,7 +36,8 @@ class Processor:
         self.game_pieces: GamePieces = GamePieces()
 
     def transform_frame(self, frame: np.ndarray) -> np.ndarray:
-        frame = cv2.resize(frame, (CameraConfig.FRAME_WIDTH, CameraConfig.FRAME_HEIGHT))
+        frame = cv2.resize(
+            frame, (CameraConfig.FRAME_WIDTH_PX, CameraConfig.FRAME_HEIGHT_PX))
         if DisplayConfig.ROTATE_IMAGE:
             frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
         if DisplayConfig.FLIP_IMAGE_HORIZONTALLY:
@@ -79,14 +80,15 @@ class Processor:
 
         for box, conf, class_id in zip(boxes, confidences, class_ids):
             center_x, center_y, scale, ratio = self.extract_features(box)
-            
+
             match class_id:
                 case 0:  # Algae
                     algae = Algae()
                     algae.update_frame_location(
                         center_x, center_y, scale, ratio, time.time())
                     algae.update_confidence(conf)
-                    distance = MonoVision.get_distance_to_object_in_mm(AutoAlgaeConfig.ALGAE_SIZE_IN_MM, scale)
+                    distance = MonoVision.get_distance_to_object_in_mm(
+                        AutoAlgaeConfig.ALGAE_SIZE_MM, scale)
                     angle = MonoVision.get_angle_to_object_in_degrees(center_x)
                     algae.update_relative_location(distance, angle)
                     self.game_pieces.add(Algae, algae)
@@ -96,7 +98,8 @@ class Processor:
                     cage.update_frame_location(
                         center_x, center_y, scale, ratio, time.time())
                     cage.update_confidence(conf)
-                    distance = MonoVision.get_distance_to_object_in_mm(AutoHangConfig.CAGE_WIDTH_IN_MM, scale)
+                    distance = MonoVision.get_distance_to_object_in_mm(
+                        AutoHangConfig.CAGE_WIDTH_MM, scale)
                     angle = MonoVision.get_angle_to_object_in_degrees(center_x)
                     cage.update_relative_location(distance, angle)
                     self.game_pieces.add(Cage, cage)
@@ -106,7 +109,8 @@ class Processor:
                     coral.update_frame_location(
                         center_x, center_y, scale, ratio, time.time())
                     coral.update_confidence(conf)
-                    distance = MonoVision.get_distance_to_object_in_mm(AutoCoralConfig.CORAL_SIZE_IN_MM, scale)
+                    distance = MonoVision.get_distance_to_object_in_mm(
+                        AutoCoralConfig.CORAL_SIZE_MM, scale)
                     angle = MonoVision.get_angle_to_object_in_degrees(center_x)
                     coral.update_relative_location(distance, angle)
                     self.game_pieces.add(Coral, coral)
@@ -116,7 +120,8 @@ class Processor:
                     robot.update_frame_location(
                         center_x, center_y, scale, ratio, time.time())
                     robot.update_confidence(conf)
-                    distance = MonoVision.get_distance_to_object_in_mm(AutoRobotConfig.AVERAGE_ROBOT_SIZE_IN_MM, scale)
+                    distance = MonoVision.get_distance_to_object_in_mm(
+                        AutoRobotConfig.AVERAGE_ROBOT_SIZE_MM, scale)
                     angle = MonoVision.get_angle_to_object_in_degrees(center_x)
                     robot.update_relative_location(distance, angle)
                     self.game_pieces.add(Robot, robot)

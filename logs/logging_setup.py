@@ -6,7 +6,7 @@ from logging import Logger
 from datetime import datetime
 from config import LoggingConfig
 
-def setup_logger(file_name) -> Logger:
+def setup_logger(file_name: str) -> Logger:
     log_dir = f"logs/files/{datetime.now():%Y-%m-%d_%H-%M-%S}"
     os.makedirs(log_dir, exist_ok=True)
     log_file_path = os.path.join(log_dir, f"{file_name}.log")

@@ -11,6 +11,7 @@ from config import AutoProcessorConfig
 
 ################################################
 
+
 class ProcessorScoringCommand:
     def __init__(self) -> None:
         file_name = os.path.splitext(os.path.basename(__file__))[0]
@@ -21,12 +22,15 @@ class ProcessorScoringCommand:
         if not processor_apriltag:
             self.logger.warning("Processor not found")
             return (0.0, 0.0, 0.0, False)
-        
-        distance_to_apriltag = AprilTagFinder.estimate_distance(processor_apriltag)
-        angular_diviation = AprilTagFinder.calculate_anglular_diviation(processor_apriltag)
-        
-        if distance_to_apriltag > AutoProcessorConfig.PROCESSOR_DESIRED_DISTANCE_IN_MM:
-            speed_percent = min((distance_to_apriltag - AutoProcessorConfig.PROCESSOR_DESIRED_DISTANCE_IN_MM) / (AutoProcessorConfig.PROCESSOR_MAX_DISTANCE_IN_MM - AutoProcessorConfig.PROCESSOR_DESIRED_DISTANCE_IN_MM) * 100, 100)
+
+        distance_to_apriltag = AprilTagFinder.estimate_distance(
+            processor_apriltag)
+        angular_diviation = AprilTagFinder.calculate_anglular_diviation(
+            processor_apriltag)
+
+        if distance_to_apriltag > AutoProcessorConfig.PROCESSOR_DESIRED_DISTANCE_MM:
+            speed_percent = min((distance_to_apriltag - AutoProcessorConfig.PROCESSOR_DESIRED_DISTANCE_MM) / (
+                AutoProcessorConfig.PROCESSOR_MAX_DISTANCE_MM - AutoProcessorConfig.PROCESSOR_DESIRED_DISTANCE_MM) * 100, 100)
         else:
             speed_percent = 0.0
 
@@ -36,5 +40,6 @@ class ProcessorScoringCommand:
 
         rot = max(min(processor_apriltag.angle / 180 * 100, 100), -100)
 
-        self.logger.info(f"Processor navigation command: x={x:.1f}%, y={y:.1f}%, rot={rot:.1f}%")
+        self.logger.info(
+            f"Processor navigation command: x={x:.1f}%, y={y:.1f}%, rot={rot:.1f}%")
         return (x, y, rot, True)
