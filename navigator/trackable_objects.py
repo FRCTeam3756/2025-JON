@@ -135,6 +135,9 @@ class GamePieces:
     def get_robot(self) -> List[Robot]:
         return self._data[Robot]  # type: ignore
 
+    def get_all(self) -> List[Object]:
+        return [obj for objs in self._data.values() for obj in objs]
+
     def clear(self) -> None:
         for key in self._data:
             self._data[key] = []

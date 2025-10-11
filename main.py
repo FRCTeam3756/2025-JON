@@ -8,6 +8,7 @@ from logs.logging_setup import setup_logger
 from config import CameraConfig, DebugConfig, DisplayConfig
 from networking.rio_communication import RoboRio
 from camera.monovision import MonoVision
+from odometry.odometry import Odometry
 from vision.display import Display
 from vision.processor import Processor
 from navigator.autoalgae import AlgaePickupCommand
@@ -24,8 +25,9 @@ def init() -> Tuple[Logger, Processor, RoboRio, AlgaePickupCommand, CoralPickupC
     file_name = os.path.splitext(os.path.basename(__file__))[0]
     logger = setup_logger(file_name)
 
-    frame_processor = Processor()
     roborio = RoboRio()
+    odometry = Odometry()
+    frame_processor = Processor()
     autoalgae = AlgaePickupCommand()
     autocoral = CoralPickupCommand()
     autoreef = ReefScoringCommand()
@@ -79,7 +81,7 @@ def testing_mainloop(logger: Logger, frame_processor: Processor, autoalgae: Alga
             None
         )
         reef_apriltags: List[AprilTagDetection] = [
-            tag for tag in apriltags if tag.getId() in reef_ids
+            tag for tag in apriltags if tag.getId()  in reef_ids
         ]
 
         x = y = rot = 0.0

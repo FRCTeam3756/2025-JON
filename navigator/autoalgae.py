@@ -11,9 +11,6 @@ from navigator.trackable_objects import Algae
 
 
 class AlgaePickupCommand:
-    REQUIRED_ATTRIBUTES = ['confidence',
-                           'distance_in_mm', 'relative_angle_deg']
-
     def __init__(self) -> None:
         file_name = os.path.splitext(os.path.basename(__file__))[0]
         setup_logger(file_name)
@@ -57,32 +54,27 @@ class AlgaePickupCommand:
             return None
 
         best_piece = None
+        best_score = 0.0
 
         for piece in algaes:
-            if self.validate_algae(piece):
-                if best_piece is None or self.compute_score(piece) > self.compute_score(best_piece):
+            score = self.compute_score(piece)
+            if not score:
+                continue
+            else:
+                if score > best_score:
                     best_piece = piece
+                    best_score = score
 
         return best_piece
 
-    def validate_algae(self, algae: Algae) -> bool:
-        """Check if a game piece has all required attributes."""
-        missing_attributes = [attr for attr in self.REQUIRED_ATTRIBUTES if getattr(
-            algae, attr, None) is None]
-        if missing_attributes:
-            self.logger.error(
-                f"Game piece {algae} is missing attributes: {', '.join(missing_attributes)}")
-            return False
-        return True
-
-    def compute_score(self, algae: Algae) -> float:
+    def compute_score(self, algae: Algae) -> Optional[float]:
         """Calculate the weighted score for a game piece."""
-        if algae.confidence and algae.relative_distance_mm and algae.relative_angle_deg:
-            return (
-                AutoAlgaeConfig.ALGAE_CONFIDENCE_WEIGHT_PCT * algae.confidence +
-                AutoAlgaeConfig.ALGAE_DISTANCE_WEIGHT_PCT * ((120 - algae.relative_distance_mm) / 120) +
-                AutoAlgaeConfig.ALGAE_ANGULAR_WEIGHT_PCT *
-                (1 - abs(algae.relative_angle_deg) / 180)
-            )
-        else:
-            return 0.0
+        if not (algae.confidence and algae.relative_distance_mm and algae.relative_angle_deg):
+            return None
+        
+        return (
+            AutoAlgaeConfig.ALGAE_CONFIDENCE_WEIGHT_PCT * algae.confidence +
+            AutoAlgaeConfig.ALGAE_DISTANCE_WEIGHT_PCT * ((120 - algae.relative_distance_mm) / 120) +
+            AutoAlgaeConfig.ALGAE_ANGULAR_WEIGHT_PCT *
+            (1 - abs(algae.relative_angle_deg) / 180)
+        )

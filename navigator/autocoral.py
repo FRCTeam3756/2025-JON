@@ -10,9 +10,6 @@ from navigator.trackable_objects import Coral
 
 
 class CoralPickupCommand:
-    REQUIRED_ATTRIBUTES = ['confidence',
-                           'relative_distance_mm', 'relative_angle_deg']
-
     def __init__(self) -> None:
         file_name = os.path.splitext(os.path.basename(__file__))[0]
         self.logger = setup_logger(file_name)
@@ -54,26 +51,15 @@ class CoralPickupCommand:
         best_score = 0.0
 
         for piece in corals:
-            if self.validate_coral(piece):
-                score = self.compute_score(piece)
-                if not score:
-                    continue
-                else:
-                    if score > best_score:
-                        best_piece = piece
-                        best_score = score
+            score = self.compute_score(piece)
+            if not score:
+                continue
+            else:
+                if score > best_score:
+                    best_piece = piece
+                    best_score = score
 
         return best_piece
-
-    def validate_coral(self, coral: Coral) -> bool:
-        """Check if a game piece has all required attributes."""
-        missing_attributes = [attr for attr in self.REQUIRED_ATTRIBUTES if getattr(
-            coral, attr, None) is None]
-        if missing_attributes:
-            self.logger.error(
-                f"Game piece {coral} is missing attributes: {', '.join(missing_attributes)}")
-            return False
-        return True
 
     def compute_score(self, coral: Coral) -> Optional[float]:
         """Calculate the weighted score for a game piece."""
