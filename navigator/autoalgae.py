@@ -12,7 +12,7 @@ from navigator.trackable_objects import Algae
 
 class AlgaePickupCommand:
     REQUIRED_ATTRIBUTES = ['confidence',
-                           'relative_distance_mm', 'relative_angle_deg']
+                           'distance_in_mm', 'relative_angle_deg']
 
     def __init__(self) -> None:
         file_name = os.path.splitext(os.path.basename(__file__))[0]

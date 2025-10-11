@@ -88,7 +88,7 @@ def testing_mainloop(logger: Logger, frame_processor: Processor, autoalgae: Alga
         if current_key == "1":
             algaes: List[Algae] = game_pieces.get_algae()
             best_algae = autoalgae.compute_best_algae(algaes)
-            if best_algae:
+            if best_algae and best_algae.x:
                 x, y, rot, success = autoalgae.get_algae_navigation_command(
                     best_algae)
                 if success:
@@ -219,7 +219,7 @@ def competition_mainloop(logger: Logger, frame_processor: Processor, roborio: Ro
                 corals: List[Coral] = game_pieces.get_coral()
                 if corals:
                     target_coral = autocoral.compute_best_coral(corals)
-                    if target_coral:
+                    if target_coral and target_coral.x:
                         angle = MonoVision.get_angle_to_object_in_degrees(
                             target_coral.x)
                         Display.draw_angle_line(frame, angle)
