@@ -3,14 +3,13 @@ import math
 import numpy as np
 from typing import Tuple
 
-from config import CameraConfig, FieldConfig
+from config import CameraConfig, FieldConfig, RamFernoRobotConfig
 from navigator.trackable_objects import Algae, Coral, Cage, GamePieces, Robot
 
 
 class Odometry:
     PIXELS_PER_METER = 70
     MARGIN_PX = 20
-    ROBOT_RADIUS_M = 0.71
     INCH_TO_M = 0.0254
 
     ROBOT_COLOR = (0, 125, 255)
@@ -133,12 +132,14 @@ class Odometry:
     def draw_ramferno(self, canvas: np.ndarray, robot_x_m: float, robot_y_m: float, robot_heading_rad: float) -> None:
         robot_field_x, robot_field_y = self.camera_to_canvas(
             robot_x_m, robot_y_m)
-        robot_radius_px = int(self.ROBOT_RADIUS_M * self.PIXELS_PER_METER)
+
+        robot_half_width_px = (RamFernoRobotConfig.ROBOT_WIDTH_M * self.PIXELS_PER_METER) / 2
+        robot_half_length_px = (RamFernoRobotConfig.ROBOT_LENGTH_M * self.PIXELS_PER_METER) / 2
         corners = [
-            (-robot_radius_px, -robot_radius_px),
-            (robot_radius_px, -robot_radius_px),
-            (robot_radius_px, robot_radius_px),
-            (-robot_radius_px, robot_radius_px),
+            (-robot_half_length_px, -robot_half_width_px), # back left
+            (robot_half_length_px, -robot_half_width_px),  # front left
+            (robot_half_length_px, robot_half_width_px),   # front right
+            (-robot_half_length_px, robot_half_width_px),  # back right
         ]
 
         def rot(lx, ly) -> Tuple[int, int]:
@@ -152,8 +153,8 @@ class Odometry:
         cv2.fillConvexPoly(canvas, pts, self.ROBOT_COLOR)
         cv2.polylines(canvas, [pts], True, (0, 0, 150), 2)
 
-        front_local = [(robot_radius_px, -robot_radius_px),
-                       (robot_radius_px, robot_radius_px)]
+        front_local = [(robot_half_length_px, -robot_half_width_px),
+                       (robot_half_length_px, robot_half_width_px)]
         front_pts = np.array([rot(x, y) for x, y in front_local], np.int32)
         cv2.line(canvas, tuple(front_pts[0]),
                  tuple(front_pts[1]), (0, 0, 255), 3)

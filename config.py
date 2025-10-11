@@ -56,7 +56,8 @@ class AprilTagConfig:
 
 
 class RamFernoRobotConfig:
-    ROBOT_WIDTH: float
+    ROBOT_WIDTH_M: float = 0.8128   # 32" with Bumpers
+    ROBOT_LENGTH_M: float = 0.8128  # 32" with Bumpers
 
 
 class SelfDrivingConfig:
