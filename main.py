@@ -21,7 +21,7 @@ from robotpy_apriltag import AprilTagDetection
 ###############################################################
 
 
-def init() -> Tuple[Logger, Processor, RoboRio, AlgaePickupCommand, CoralPickupCommand, ReefScoringCommand, ProcessorScoringCommand, cv2.VideoCapture, Optional[cv2.VideoWriter]]:
+def init() -> Tuple[Logger, RoboRio, Odometry, Processor, AlgaePickupCommand, CoralPickupCommand, ReefScoringCommand, ProcessorScoringCommand, cv2.VideoCapture, Optional[cv2.VideoWriter]]:
     file_name = os.path.splitext(os.path.basename(__file__))[0]
     logger = setup_logger(file_name)
 
@@ -45,7 +45,7 @@ def init() -> Tuple[Logger, Processor, RoboRio, AlgaePickupCommand, CoralPickupC
                               (CameraConfig.FRAME_WIDTH_PX, CameraConfig.FRAME_HEIGHT_PX), True)
 
     logger.info("System initialized successfully.")
-    return logger, frame_processor, roborio, autoalgae, autocoral, autoreef, autoprocessor, cap, out
+    return logger, roborio, odometry, frame_processor, autoalgae, autocoral, autoreef, autoprocessor, cap, out
 
 
 def testing_mainloop(logger: Logger, frame_processor: Processor, autoalgae: AlgaePickupCommand, autocoral: CoralPickupCommand, autoreef: ReefScoringCommand, autoprocessor: ProcessorScoringCommand, cap: cv2.VideoCapture, out: Optional[cv2.VideoWriter]) -> None:
@@ -61,7 +61,7 @@ def testing_mainloop(logger: Logger, frame_processor: Processor, autoalgae: Alga
             break
 
         frame = frame_processor.transform_frame(frame)
-        processed_frame, game_pieces, apriltags = frame_processor.process_frame(
+        camera_frame, visible_game_pieces, apriltags = frame_processor.process_frame(
             frame)
         frame_processor.calculate_frame_rate()
 
@@ -84,11 +84,16 @@ def testing_mainloop(logger: Logger, frame_processor: Processor, autoalgae: Alga
             tag for tag in apriltags if tag.getId()  in reef_ids
         ]
 
+        # Insert Localization Step with Apriltags
+        odometry.game_pieces.add(visible_game_pieces)
+        logger.debug(f'[DEBUG]: Sending {len(visible_game_pieces.get_all())} objects to odometry')
+        odometry_frame = odometry.process_frame(8, 2, 3.14159)
+
         x = y = rot = 0.0
         success = False
 
         if current_key == "1":
-            algaes: List[Algae] = game_pieces.get_algae()
+            algaes: List[Algae] = visible_game_pieces.get_algae()
             best_algae = autoalgae.compute_best_algae(algaes)
             if best_algae and best_algae.x:
                 x, y, rot, success = autoalgae.get_algae_navigation_command(
@@ -135,10 +140,12 @@ def testing_mainloop(logger: Logger, frame_processor: Processor, autoalgae: Alga
             messages.append(f'X: {x}, Y: {y}, R: {rot}')
             Display.insert_text_onto_frame(frame, messages)
             messages.clear()
-            Display.show_frame(DisplayConfig.WINDOW_TITLE, processed_frame)
+            Display.show_frame(DisplayConfig.WINDOW_TITLE, camera_frame)
+
+            Display.show_frame(odometry.WINDOW_NAME, odometry_frame)
 
         if DisplayConfig.SAVE_VIDEO and out:
-            out.write(processed_frame)
+            out.write(camera_frame)
 
         if DisplayConfig.SHOW_VIDEO and cv2.waitKey(1) & 0xFF == ord('q'):
             break
@@ -155,7 +162,7 @@ def competition_mainloop(logger: Logger, frame_processor: Processor, roborio: Ro
             break
 
         frame = frame_processor.transform_frame(frame)
-        processed_frame, game_pieces, apriltags = frame_processor.process_frame(
+        camera_frame, visible_game_pieces, apriltags = frame_processor.process_frame(
             frame)
         frame_processor.calculate_frame_rate()
 
@@ -177,7 +184,7 @@ def competition_mainloop(logger: Logger, frame_processor: Processor, roborio: Ro
         match task:
             case "auto":
                 if not roborio.get_data("has_algae"):
-                    algaes: List[Algae] = game_pieces.get_algae()
+                    algaes: List[Algae] = visible_game_pieces.get_algae()
                     best_algae = autoalgae.compute_best_algae(algaes)
 
                     if best_algae:
@@ -218,7 +225,7 @@ def competition_mainloop(logger: Logger, frame_processor: Processor, roborio: Ro
                     logger.info("[AUTO] Cannot Find Processor")
 
             case "teleop":
-                corals: List[Coral] = game_pieces.get_coral()
+                corals: List[Coral] = visible_game_pieces.get_coral()
                 if corals:
                     target_coral = autocoral.compute_best_coral(corals)
                     if target_coral and target_coral.x:
@@ -240,10 +247,10 @@ def competition_mainloop(logger: Logger, frame_processor: Processor, roborio: Ro
             messages.append(f'X: {x}, Y: {y}, R: {rot}')
             Display.insert_text_onto_frame(frame, messages)
             messages = []
-            Display.show_frame(DisplayConfig.WINDOW_TITLE, processed_frame)
+            Display.show_frame(DisplayConfig.WINDOW_TITLE, camera_frame)
 
         if DisplayConfig.SAVE_VIDEO and out:
-            out.write(processed_frame)
+            out.write(camera_frame)
 
         if DisplayConfig.SHOW_VIDEO and cv2.waitKey(1) & 0xFF == ord('q'):
             break
@@ -252,7 +259,7 @@ def competition_mainloop(logger: Logger, frame_processor: Processor, roborio: Ro
 
 
 if __name__ == "__main__":
-    logger, frame_processor, roborio, autoalgae, autocoral, autoreef, autoprocessor, cap, out = init()
+    logger, roborio, odometry, frame_processor, autoalgae, autocoral, autoreef, autoprocessor, cap, out = init()
     try:
         if DebugConfig.TESTING:
             testing_mainloop(logger, frame_processor, autoalgae,

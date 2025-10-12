@@ -120,8 +120,15 @@ class GamePieces:
             Robot: []
         }
 
-    def add(self, cls: Type[T], obj: T) -> None:
-        self._data[cls].append(obj)
+    def add(self, cls_or_gp: Union[Type[T], 'GamePieces'], obj: Optional[T] = None) -> None:
+        if isinstance(cls_or_gp, GamePieces):
+            for key, obj_list in cls_or_gp._data.items():
+                self._data[key].extend(obj_list)
+        elif obj is not None:
+            cls = cls_or_gp
+            self._data[cls].append(obj)
+        else:
+            raise ValueError("Invalid arguments: must provide either (cls, obj) or another GamePieces instance.")
 
     def get_algae(self) -> List[Algae]:
         return self._data[Algae]  # type: ignore

@@ -1,9 +1,11 @@
+import os
 import cv2
 import math
 import numpy as np
 from typing import Tuple
 
 from config import CameraConfig, FieldConfig, RamFernoRobotConfig
+from logs.logging_setup import setup_logger
 from navigator.trackable_objects import Algae, Coral, Cage, GamePieces, Robot
 
 
@@ -48,6 +50,10 @@ class Odometry:
     }
 
     def __init__(self) -> None:
+        file_name = os.path.splitext(os.path.basename(__file__))[0]
+        self.logger = setup_logger(file_name)
+        self.logger.info("Odometry logger initialized.")
+
         self.fps = 30
         self.target_x = FieldConfig.FIELD_WIDTH_M * 0.85
         self.target_y = FieldConfig.FIELD_HEIGHT_M * 0.75
@@ -75,6 +81,7 @@ class Odometry:
         return px, py
 
     def draw_field(self, canvas: np.ndarray) -> None:
+        self.logger.debug("Drawing field.")
         top_left = (self.MARGIN_PX, self.MARGIN_PX)
         bottom_right = (self.IMG_W - self.MARGIN_PX,
                         self.IMG_H - self.MARGIN_PX)
@@ -95,6 +102,7 @@ class Odometry:
         )
 
     def draw_apriltags(self, canvas: np.ndarray) -> None:
+        self.logger.debug("Drawing AprilTags on field.")
         half_px = int((self.TAG_SIZE_M * self.PIXELS_PER_METER) / 2)
         for (tag_id, (x_m, y_m, rot_deg)) in (
             self.APRILTAG_POSITIONS.items()
@@ -130,6 +138,8 @@ class Odometry:
             cv2.line(canvas, (px, py), (fx, fy), (0, 0, 0), 2)
 
     def draw_ramferno(self, canvas: np.ndarray, robot_x_m: float, robot_y_m: float, robot_heading_rad: float) -> None:
+        self.logger.debug(f"Drawing robot at ({robot_x_m:.2f}, {robot_y_m:.2f}) with heading {math.degrees(robot_heading_rad):.1f}°")
+
         robot_field_x, robot_field_y = self.camera_to_canvas(
             robot_x_m, robot_y_m)
 
@@ -184,13 +194,17 @@ class Odometry:
         for cls, objs in list(self.game_pieces._data.items()):
             for obj in list(objs):
                 if obj.relative_distance_mm is None or obj.relative_angle_deg is None:
+                    self.logger.warning(f"Skipping {cls.__name__}: Missing distance or angle data.") 
                     continue
-
+                
                 obj_x_m, obj_y_m = self.object_world_coords(
                     obj.relative_distance_mm, obj.relative_angle_deg, robot_x_m, robot_y_m, robot_heading_rad
                 )
 
                 px, py = self.camera_to_canvas(obj_x_m, obj_y_m)
+
+                self.logger.debug(f"Drawing {cls.__name__} at ({px}, {py}) world=({obj_x_m:.2f},{obj_y_m:.2f})m")
+
                 color = self.DETECTION_COLOR_MAP.get(cls, (200, 200, 200))
                 cv2.circle(canvas, (px, py), 6, color, -1)
                 cv2.putText(
@@ -244,7 +258,7 @@ class Odometry:
         if distance_total > CameraConfig.VISION_RANGE_M:
             return False
 
-        angle_to_obj = math.atan2(distance_x, distance_y)
+        angle_to_obj = math.atan2(distance_y, distance_x)
         angle_diff = (angle_to_obj - robot_heading_rad +
                       math.pi) % (2 * math.pi) - math.pi
 
@@ -255,6 +269,8 @@ class Odometry:
         cv2.resizeWindow(self.WINDOW_NAME, self.IMG_W, self.IMG_H)
 
     def update_past_detections(self, robot_x_m, robot_y_m, robot_heading_rad) -> None:
+        self.logger.debug("Updating visibility of past detections.")
+        removed = 0
         for cls, objs in list(self.game_pieces._data.items()):
             for obj in list(objs):
                 if obj.relative_distance_mm is None or obj.relative_angle_deg is None:
@@ -264,12 +280,11 @@ class Odometry:
                     obj.relative_distance_mm, obj.relative_angle_deg, robot_x_m, robot_y_m, robot_heading_rad
                 )
 
-                visible = self.object_visible(
-                    robot_x_m, robot_y_m, robot_heading_rad, obj_x_m, obj_y_m
-                )
-
-                if not visible:
+                if self.object_visible(robot_x_m, robot_y_m, robot_heading_rad, obj_x_m, obj_y_m):
                     self.game_pieces._data[cls].remove(obj)
+                    removed += 1
+        if removed > 0:
+            self.logger.info(f"Removed {removed} objects that stayed within the vision cone.")
 
     def render_frame(self, robot_x_m: float, robot_y_m: float, robot_heading_rad: float) -> np.ndarray:
         canvas = np.zeros((self.IMG_H, self.IMG_W, 3), np.uint8)
