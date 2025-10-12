@@ -65,13 +65,12 @@ class Processor:
 
         return frame, self.game_pieces, apriltags
 
-    def extract_features(self, box: List[int]) -> Tuple[int, int, float, float]:
+    def extract_features(self, x1: int, y1: int, x2: int, y2: int) -> Tuple[int, int, float, float]:
         """Extract object features."""
-        x1, y1, x2, y2 = box
-        center_x: int = (x1 + x2) // 2
-        center_y: int = (y1 + y2) // 2
-        scale: float = ((x2 - x1) + (y2 - y1)) / 2
-        ratio: float = (x2 - x1) / (y2 - y1)
+        center_x = (x1 + x2) // 2
+        center_y = (y1 + y2) // 2
+        scale = ((x2 - x1) + (y2 - y1)) / 2
+        ratio = (x2 - x1) / (y2 - y1)
         return center_x, center_y, scale, ratio
 
     def update_game_pieces(self, boxes: np.ndarray, confidences: np.ndarray, class_ids: np.ndarray) -> None:
@@ -79,7 +78,9 @@ class Processor:
         self.game_pieces.clear()
 
         for box, conf, class_id in zip(boxes, confidences, class_ids):
-            center_x, center_y, scale, ratio = self.extract_features(box)
+            x1, y1, x2, y2 = box
+            center_x, center_y, scale, ratio = self.extract_features(x1, y1, x2, y2)
+            object_width_px = x2 - x1
 
             match class_id:
                 case 0:  # Algae
@@ -88,7 +89,7 @@ class Processor:
                         center_x, center_y, scale, ratio, time.time())
                     algae.update_confidence(conf)
                     distance = MonoVision.get_distance_to_object_in_mm(
-                        AutoAlgaeConfig.ALGAE_SIZE_MM, scale)
+                        AutoAlgaeConfig.ALGAE_SIZE_MM, object_width_px)
                     angle = MonoVision.get_angle_to_object_in_degrees(center_x)
                     algae.update_relative_location(distance, angle)
                     self.game_pieces.add(Algae, algae)
@@ -99,7 +100,7 @@ class Processor:
                         center_x, center_y, scale, ratio, time.time())
                     cage.update_confidence(conf)
                     distance = MonoVision.get_distance_to_object_in_mm(
-                        AutoHangConfig.CAGE_WIDTH_MM, scale)
+                        AutoHangConfig.CAGE_WIDTH_MM, object_width_px)
                     angle = MonoVision.get_angle_to_object_in_degrees(center_x)
                     cage.update_relative_location(distance, angle)
                     self.game_pieces.add(Cage, cage)
@@ -110,7 +111,7 @@ class Processor:
                         center_x, center_y, scale, ratio, time.time())
                     coral.update_confidence(conf)
                     distance = MonoVision.get_distance_to_object_in_mm(
-                        AutoCoralConfig.CORAL_SIZE_MM, scale)
+                        AutoCoralConfig.CORAL_SIZE_MM, object_width_px)
                     angle = MonoVision.get_angle_to_object_in_degrees(center_x)
                     coral.update_relative_location(distance, angle)
                     self.game_pieces.add(Coral, coral)
@@ -121,7 +122,7 @@ class Processor:
                         center_x, center_y, scale, ratio, time.time())
                     robot.update_confidence(conf)
                     distance = MonoVision.get_distance_to_object_in_mm(
-                        AutoRobotConfig.AVERAGE_ROBOT_SIZE_MM, scale)
+                        AutoRobotConfig.AVERAGE_ROBOT_SIZE_MM, object_width_px)
                     angle = MonoVision.get_angle_to_object_in_degrees(center_x)
                     robot.update_relative_location(distance, angle)
                     self.game_pieces.add(Robot, robot)

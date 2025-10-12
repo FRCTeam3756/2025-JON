@@ -264,10 +264,6 @@ class Odometry:
 
         return abs(angle_diff) <= math.radians(CameraConfig.HORIZONTAL_FOV_DEG) / 2
 
-    def initialize_window(self) -> None:
-        cv2.namedWindow(self.WINDOW_NAME, cv2.WINDOW_NORMAL)
-        cv2.resizeWindow(self.WINDOW_NAME, self.IMG_W, self.IMG_H)
-
     def update_past_detections(self, robot_x_m, robot_y_m, robot_heading_rad) -> None:
         self.logger.debug("Updating visibility of past detections.")
         removed = 0
@@ -298,8 +294,8 @@ class Odometry:
         return canvas
 
     def process_frame(self, robot_x_m: float, robot_y_m: float, robot_heading_rad: float) -> np.ndarray:
-        self.update_past_detections(robot_x_m, robot_y_m, robot_heading_rad)
         frame = self.render_frame(robot_x_m, robot_y_m, robot_heading_rad)
+        self.update_past_detections(robot_x_m, robot_y_m, robot_heading_rad)
 
         return frame
 

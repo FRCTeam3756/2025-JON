@@ -3,7 +3,7 @@ import math
 import logging
 import numpy as np
 from logs.logging_setup import setup_logger
-from typing import List
+from typing import List, Optional
 
 import cv2
 import robotpy_apriltag as apriltag
@@ -38,6 +38,30 @@ class AprilTagFinder:
         gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         apriltags = self.apriltag_detector.detect(gray_frame)
         return apriltags
+    
+    @staticmethod
+    def get_best_apriltag(apriltags: List[AprilTagDetection]) -> Optional[AprilTagDetection]:
+        """Select the best AprilTag"""
+        if not apriltags:
+            return None
+
+        cx = CameraConfig.FRAME_WIDTH_PX / 2
+        cy = CameraConfig.FRAME_HEIGHT_PX / 2
+
+        def score(tag: AprilTagDetection) -> float:
+            center = tag.getCenter()
+
+            points = [tag.getCorner(i) for i in range(4)]
+
+            size = sum(
+                math.hypot(points[i].x - points[(i + 1) % 4].x, points[i].y - points[(i + 1) % 4].y)
+                for i in range(4)
+            ) / 4
+
+            offset = math.hypot(center.x - cx, center.y - cy)
+            return (size / 5) - (offset / 10)
+
+        return max(apriltags, key=score)
 
 
 if __name__ == "__main__":

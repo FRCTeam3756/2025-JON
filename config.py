@@ -16,14 +16,24 @@ class FieldConfig:
     FIELD_HEIGHT_M = 8.05
 
 
-class CameraConfig:     # Logitech C920
-    HORIZONTAL_FOV_DEG: float = 59.6
+
+class CameraConfig:     # Video Camera
+    HORIZONTAL_FOV_DEG: float = 90
     FOCAL_LENGTH_MM: float = 3.725
     FRAME_WIDTH_PX: int = 640
     FRAME_HEIGHT_PX: int = 640
     DIAGONAL_SENSOR_WIDTH_MM: float = 6
     SPACE_BETWEEN_STEREO_CAMERAS_MM: float = 0.0
-    VISION_RANGE_M: float = 4.0
+    VISION_RANGE_M: float = 20.0
+
+# class CameraConfig:     # Logitech C920
+#     HORIZONTAL_FOV_DEG: float = 59.6
+#     FOCAL_LENGTH_MM: float = 3.725
+#     FRAME_WIDTH_PX: int = 640
+#     FRAME_HEIGHT_PX: int = 640
+#     DIAGONAL_SENSOR_WIDTH_MM: float = 6
+#     SPACE_BETWEEN_STEREO_CAMERAS_MM: float = 0.0
+#     VISION_RANGE_M: float = 4.0
 
 
 class DisplayConfig:

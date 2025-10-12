@@ -3,9 +3,12 @@ import cv2
 import logging
 from logging import Logger
 from typing import Optional, List, Tuple
+from apriltags.apriltag_finder import AprilTagFinder
+from localization.localization import Localization
 from logs.logging_setup import setup_logger
 
-from config import CameraConfig, DebugConfig, DisplayConfig
+from gui import GUI
+from config import AprilTagConfig, CameraConfig, DebugConfig, DisplayConfig
 from networking.rio_communication import RoboRio
 from camera.monovision import MonoVision
 from odometry.odometry import Odometry
@@ -21,12 +24,14 @@ from robotpy_apriltag import AprilTagDetection
 ###############################################################
 
 
-def init() -> Tuple[Logger, RoboRio, Odometry, Processor, AlgaePickupCommand, CoralPickupCommand, ReefScoringCommand, ProcessorScoringCommand, cv2.VideoCapture, Optional[cv2.VideoWriter]]:
+def init() -> Tuple[Logger, GUI, RoboRio, Odometry, Localization, Processor, AlgaePickupCommand, CoralPickupCommand, ReefScoringCommand, ProcessorScoringCommand, cv2.VideoCapture, Optional[cv2.VideoWriter]]:
     file_name = os.path.splitext(os.path.basename(__file__))[0]
     logger = setup_logger(file_name)
 
+    gui = GUI()
     roborio = RoboRio()
     odometry = Odometry()
+    localization = Localization()
     frame_processor = Processor()
     autoalgae = AlgaePickupCommand()
     autocoral = CoralPickupCommand()
@@ -45,12 +50,13 @@ def init() -> Tuple[Logger, RoboRio, Odometry, Processor, AlgaePickupCommand, Co
                               (CameraConfig.FRAME_WIDTH_PX, CameraConfig.FRAME_HEIGHT_PX), True)
 
     logger.info("System initialized successfully.")
-    return logger, roborio, odometry, frame_processor, autoalgae, autocoral, autoreef, autoprocessor, cap, out
+    return logger, gui, roborio, odometry, localization, frame_processor, autoalgae, autocoral, autoreef, autoprocessor, cap, out
 
 
-def testing_mainloop(logger: Logger, frame_processor: Processor, autoalgae: AlgaePickupCommand, autocoral: CoralPickupCommand, autoreef: ReefScoringCommand, autoprocessor: ProcessorScoringCommand, cap: cv2.VideoCapture, out: Optional[cv2.VideoWriter]) -> None:
+def testing_mainloop(logger: Logger, gui: GUI, odometry: Odometry, localization: Localization, frame_processor: Processor, autoalgae: AlgaePickupCommand, autocoral: CoralPickupCommand, autoreef: ReefScoringCommand, autoprocessor: ProcessorScoringCommand, cap: cv2.VideoCapture, out: Optional[cv2.VideoWriter]) -> None:
     logger.info("Running in TESTING mode.")
 
+    robot_x_m, robot_y_m, robot_heading_rad = 8, 2, 2.5
     current_key: Optional[str] = None
     messages: List = []
 
@@ -80,14 +86,15 @@ def testing_mainloop(logger: Logger, frame_processor: Processor, autoalgae: Alga
             (tag for tag in apriltags if tag.getId() == processor_id),
             None
         )
-        reef_apriltags: List[AprilTagDetection] = [
-            tag for tag in apriltags if tag.getId()  in reef_ids
+        reef_apriltags: Optional[List[AprilTagDetection]] = [
+            tag for tag in apriltags if tag.getId() in reef_ids
         ]
-
-        # Insert Localization Step with Apriltags
+        closest_apriltag = AprilTagFinder.get_best_apriltag(apriltags)
+        if closest_apriltag:
+            robot_x_m, robot_y_m, robot_heading_rad = localization.get_world_position(closest_apriltag.getId(), MonoVision.get_distance_to_object_in_mm(AprilTagConfig.APRILTAG_SIZE_CM / 10, abs(closest_apriltag.getCorner(0).x - closest_apriltag.getCorner(3).x)), MonoVision.get_angle_to_object_in_degrees(closest_apriltag.getCenter().x))
         odometry.game_pieces.add(visible_game_pieces)
         logger.debug(f'[DEBUG]: Sending {len(visible_game_pieces.get_all())} objects to odometry')
-        odometry_frame = odometry.process_frame(8, 2, 3.14159)
+        odometry_frame = odometry.process_frame(robot_x_m, robot_y_m, robot_heading_rad)
 
         x = y = rot = 0.0
         success = False
@@ -140,9 +147,7 @@ def testing_mainloop(logger: Logger, frame_processor: Processor, autoalgae: Alga
             messages.append(f'X: {x}, Y: {y}, R: {rot}')
             Display.insert_text_onto_frame(frame, messages)
             messages.clear()
-            Display.show_frame(DisplayConfig.WINDOW_TITLE, camera_frame)
-
-            Display.show_frame(odometry.WINDOW_NAME, odometry_frame)
+            gui.update(camera_frame, odometry_frame)
 
         if DisplayConfig.SAVE_VIDEO and out:
             out.write(camera_frame)
@@ -151,7 +156,7 @@ def testing_mainloop(logger: Logger, frame_processor: Processor, autoalgae: Alga
             break
 
 
-def competition_mainloop(logger: Logger, frame_processor: Processor, roborio: RoboRio, autoalgae: AlgaePickupCommand, autocoral: CoralPickupCommand, autoreef: ReefScoringCommand, autoprocessor: ProcessorScoringCommand, cap: cv2.VideoCapture, out: Optional[cv2.VideoWriter]) -> None:
+def competition_mainloop(logger: Logger, gui: GUI, frame_processor: Processor, roborio: RoboRio, autoalgae: AlgaePickupCommand, autocoral: CoralPickupCommand, autoreef: ReefScoringCommand, autoprocessor: ProcessorScoringCommand, cap: cv2.VideoCapture, out: Optional[cv2.VideoWriter]) -> None:
     messages: List = []
 
     while cap.isOpened():
@@ -259,17 +264,18 @@ def competition_mainloop(logger: Logger, frame_processor: Processor, roborio: Ro
 
 
 if __name__ == "__main__":
-    logger, roborio, odometry, frame_processor, autoalgae, autocoral, autoreef, autoprocessor, cap, out = init()
+    logger, gui, roborio, odometry, localization, frame_processor, autoalgae, autocoral, autoreef, autoprocessor, cap, out = init()
     try:
         if DebugConfig.TESTING:
-            testing_mainloop(logger, frame_processor, autoalgae,
+            testing_mainloop(logger, gui, odometry, localization, frame_processor, autoalgae,
                              autocoral, autoreef, autoprocessor, cap, out)
         else:
-            competition_mainloop(logger, frame_processor, roborio,
+            competition_mainloop(logger, gui, frame_processor, roborio,
                                  autoalgae, autocoral, autoreef, autoprocessor, cap, out)
     finally:
         cap.release()
         if DisplayConfig.SAVE_VIDEO and out:
             out.release()
+        gui.close()
         cv2.destroyAllWindows()
         logging.shutdown()
