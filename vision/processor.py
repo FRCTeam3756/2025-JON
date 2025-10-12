@@ -36,8 +36,6 @@ class Processor:
         self.game_pieces: GamePieces = GamePieces()
 
     def transform_frame(self, frame: np.ndarray) -> np.ndarray:
-        frame = cv2.resize(
-            frame, (CameraConfig.FRAME_WIDTH_PX, CameraConfig.FRAME_HEIGHT_PX))
         if DisplayConfig.ROTATE_IMAGE:
             frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
         if DisplayConfig.FLIP_IMAGE_HORIZONTALLY:
@@ -49,8 +47,10 @@ class Processor:
 
     def process_frame(self, frame: np.ndarray) -> Tuple[np.ndarray, GamePieces, List[AprilTagDetection]]:
         """Processes a single frame for detections and annotations."""
+        apriltags = self.apriltag_detector.find_apriltags(frame)    # Find apriltags before resizing for better accuracy
+        frame = cv2.resize(
+            frame, (CameraConfig.FRAME_WIDTH_PX, CameraConfig.FRAME_HEIGHT_PX))
         boxes, confidences, class_ids = self.yolo_detector.detect(frame)
-        apriltags = self.apriltag_detector.find_apriltags(frame)
 
         if boxes.size > 0:
             indices = self.apply_nms(boxes, confidences)

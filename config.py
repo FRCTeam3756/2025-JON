@@ -18,7 +18,7 @@ class FieldConfig:
 
 
 class CameraConfig:     # Video Camera
-    HORIZONTAL_FOV_DEG: float = 90
+    HORIZONTAL_FOV_DEG: float = 110
     FOCAL_LENGTH_MM: float = 3.725
     FRAME_WIDTH_PX: int = 640
     FRAME_HEIGHT_PX: int = 640

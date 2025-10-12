@@ -56,7 +56,7 @@ def init() -> Tuple[Logger, GUI, RoboRio, Odometry, Localization, Processor, Alg
 def testing_mainloop(logger: Logger, gui: GUI, odometry: Odometry, localization: Localization, frame_processor: Processor, autoalgae: AlgaePickupCommand, autocoral: CoralPickupCommand, autoreef: ReefScoringCommand, autoprocessor: ProcessorScoringCommand, cap: cv2.VideoCapture, out: Optional[cv2.VideoWriter]) -> None:
     logger.info("Running in TESTING mode.")
 
-    robot_x_m, robot_y_m, robot_heading_rad = 8, 2, 2.5
+    robot_x_m, robot_y_m, robot_heading_rad = 8, 2, 2.9
     current_key: Optional[str] = None
     messages: List = []
 

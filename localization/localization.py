@@ -67,9 +67,12 @@ class Localization:
         tag_heading_rad = math.radians(tag_rotation_deg)
         rel_angle_rad = math.radians(relative_angle_deg)
 
-        robot_heading_rad = tag_heading_rad + rel_angle_rad
+        robot_heading_rad = tag_heading_rad - rel_angle_rad
 
-        robot_x_m = tag_x_m + dist_m * math.cos(robot_heading_rad)
-        robot_y_m = tag_y_m + dist_m * math.sin(robot_heading_rad)
+        tag_rel_x = dist_m * math.cos(rel_angle_rad)
+        tag_rel_y = dist_m * math.sin(rel_angle_rad)
+
+        robot_x_m = tag_x_m - (math.cos(tag_heading_rad) * tag_rel_x - math.sin(tag_heading_rad) * tag_rel_y)
+        robot_y_m = tag_y_m - (math.sin(tag_heading_rad) * tag_rel_x + math.cos(tag_heading_rad) * tag_rel_y)
 
         return robot_x_m, robot_y_m, robot_heading_rad

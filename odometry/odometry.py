@@ -245,7 +245,7 @@ class Odometry:
     def object_world_coords(self, relative_distance_mm: float, relative_angle_deg: float, robot_x_m: float, robot_y_m: float, robot_heading_rad: float) -> Tuple[float, float]:
         dist_m = relative_distance_mm * 0.001
         rel_angle_rad = math.radians(relative_angle_deg)
-        abs_angle_rad = robot_heading_rad + rel_angle_rad
+        abs_angle_rad = robot_heading_rad - rel_angle_rad
         obj_x_m = robot_x_m + dist_m * math.cos(abs_angle_rad)
         obj_y_m = robot_y_m + dist_m * math.sin(abs_angle_rad)
         return obj_x_m, obj_y_m
