@@ -4,9 +4,7 @@ import logging
 from typing import Tuple
 from logs.logging_setup import setup_logger
 
-from robotpy_apriltag import AprilTagDetection
-
-from apriltags.apriltag_finder import AprilTagFinder
+from apriltags.apriltags import AprilTagDetection, AprilTagFinder
 from config import AutoReefConfig
 
 ################################################

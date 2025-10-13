@@ -3,7 +3,7 @@ import cv2
 import logging
 from logging import Logger
 from typing import Optional, List, Tuple
-from apriltags.apriltag_finder import AprilTagFinder
+from apriltags.apriltags import AprilTagDetection, AprilTagFinder
 from localization.localization import Localization
 from logs.logging_setup import setup_logger
 
@@ -12,14 +12,13 @@ from config import AprilTagConfig, CameraConfig, DebugConfig, DisplayConfig
 from networking.rio_communication import RoboRio
 from camera.monovision import MonoVision
 from odometry.odometry import Odometry
-from vision.display import Display
+from display import Display
 from vision.processor import Processor
 from navigator.autoalgae import AlgaePickupCommand
 from navigator.autocoral import CoralPickupCommand
 from navigator.autoreef import ReefScoringCommand
 from navigator.autoprocessor import ProcessorScoringCommand
 from navigator.trackable_objects import Algae, Coral
-from robotpy_apriltag import AprilTagDetection
 
 ###############################################################
 
@@ -83,18 +82,30 @@ def testing_mainloop(logger: Logger, gui: GUI, odometry: Odometry, localization:
         reef_ids = {6, 7, 8, 9, 10, 11}
 
         processor_apriltag: Optional[AprilTagDetection] = next(
-            (tag for tag in apriltags if tag.getId() == processor_id),
+            (tag for tag in apriltags if tag.id == processor_id),
             None
         )
         reef_apriltags: Optional[List[AprilTagDetection]] = [
-            tag for tag in apriltags if tag.getId() in reef_ids
+            tag for tag in apriltags if tag.id in reef_ids
         ]
-        closest_apriltag = AprilTagFinder.get_best_apriltag(apriltags)
-        if closest_apriltag:
-            robot_x_m, robot_y_m, robot_heading_rad = localization.get_world_position(closest_apriltag.getId(), MonoVision.get_distance_to_object_in_mm(AprilTagConfig.APRILTAG_SIZE_CM / 10, abs(closest_apriltag.getCorner(0).x - closest_apriltag.getCorner(3).x)), MonoVision.get_angle_to_object_in_degrees(closest_apriltag.getCenter().x))
+        closest_apriltag = AprilTagFinder.get_best_tag(apriltags)
+        if closest_apriltag is not None:
+            cx = closest_apriltag.center_x
+            c0 = closest_apriltag.corner_x(0)
+            c3 = closest_apriltag.corner_x(3)
+
+            if cx is not None and c0 is not None and c3 is not None:
+                distance = MonoVision.get_distance_to_object_in_mm(
+                    AprilTagConfig.APRILTAG_SIZE_MM,
+                    abs(c0 - c3)
+                )
+                angle = MonoVision.get_angle_to_object_in_degrees(cx)
+                robot_x_m, robot_y_m, robot_heading_rad = localization.get_world_position(closest_apriltag.id, distance, angle)
         odometry.game_pieces.add(visible_game_pieces)
-        logger.debug(f'[DEBUG]: Sending {len(visible_game_pieces.get_all())} objects to odometry')
-        odometry_frame = odometry.process_frame(robot_x_m, robot_y_m, robot_heading_rad)
+        logger.debug(
+            f'[DEBUG]: Sending {len(visible_game_pieces.get_all())} objects to odometry')
+        odometry_frame = odometry.process_frame(
+            robot_x_m, robot_y_m, robot_heading_rad)
 
         x = y = rot = 0.0
         success = False
@@ -125,9 +136,9 @@ def testing_mainloop(logger: Logger, gui: GUI, odometry: Odometry, localization:
         elif current_key == "2" and processor_apriltag:
             x, y, rot, success = autoprocessor.get_processor_navigation_command(
                 processor_apriltag)
-            if success:
+            if success and processor_apriltag.center_x:
                 angle_to_processor = MonoVision.get_angle_to_object_in_degrees(
-                    processor_apriltag.getCenter().x)
+                    processor_apriltag.center_x)
                 Display.draw_angle_line(frame, angle_to_processor)
                 logger.info(
                     f'[TEST] Target Movement - X: {x}, Y: {y}, ROT: {rot}')
@@ -176,11 +187,11 @@ def competition_mainloop(logger: Logger, gui: GUI, frame_processor: Processor, r
         reef_ids = {6, 7, 8, 9, 10, 11} if roborio.get_data(
             "team_colour") == "red" else {17, 18, 19, 20, 21, 22}
         processor_apriltag: Optional[AprilTagDetection] = next(
-            (tag for tag in apriltags if tag.getId() == processor_id),
+            (tag for tag in apriltags if tag.id == processor_id),
             None
         )
         reef_apriltags: List[AprilTagDetection] = [
-            tag for tag in apriltags if tag.getId() in reef_ids
+            tag for tag in apriltags if tag.id in reef_ids
         ]
 
         x = y = rot = 0.0

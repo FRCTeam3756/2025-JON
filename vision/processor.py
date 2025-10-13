@@ -10,10 +10,9 @@ import torchvision
 import numpy as np
 
 from config import AutoAlgaeConfig, AutoCoralConfig, AutoHangConfig, AutoRobotConfig, CameraConfig, DetectorConfig, DisplayConfig, LoggingConfig
-from .detector import Detector
-from .display import Display
-from apriltags.apriltag_finder import AprilTagFinder
-from robotpy_apriltag import AprilTagDetection
+from vision.detector import Detector
+from display import Display
+from apriltags.apriltags import AprilTagDetection, AprilTagFinder
 from navigator.trackable_objects import Algae, Cage, Coral, GamePieces, Robot
 from camera.monovision import MonoVision
 
@@ -47,7 +46,8 @@ class Processor:
 
     def process_frame(self, frame: np.ndarray) -> Tuple[np.ndarray, GamePieces, List[AprilTagDetection]]:
         """Processes a single frame for detections and annotations."""
-        apriltags = self.apriltag_detector.find_apriltags(frame)    # Find apriltags before resizing for better accuracy
+        apriltags = self.apriltag_detector.detect_tags(
+            frame)    # Find apriltags before resizing for better accuracy
         frame = cv2.resize(
             frame, (CameraConfig.FRAME_WIDTH_PX, CameraConfig.FRAME_HEIGHT_PX))
         boxes, confidences, class_ids = self.yolo_detector.detect(frame)
@@ -79,7 +79,8 @@ class Processor:
 
         for box, conf, class_id in zip(boxes, confidences, class_ids):
             x1, y1, x2, y2 = box
-            center_x, center_y, scale, ratio = self.extract_features(x1, y1, x2, y2)
+            center_x, center_y, scale, ratio = self.extract_features(
+                x1, y1, x2, y2)
             object_width_px = x2 - x1
 
             match class_id:

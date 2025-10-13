@@ -3,7 +3,7 @@ import math
 import numpy as np
 from typing import List, Tuple, Union
 
-from robotpy_apriltag import AprilTagDetection
+from apriltags.apriltags import AprilTagDetection
 from config import DisplayConfig
 
 class Display:
@@ -20,7 +20,7 @@ class Display:
             cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
 
         for apriltag in apriltags:
-            frame = Display.draw_apriltag(frame, apriltag)
+            Display.draw_apriltag(frame, apriltag)
 
         return frame
     
@@ -44,20 +44,13 @@ class Display:
         cv2.line(frame, start_point, (end_x, end_y), (0, 155, 255), 2)
 
     @staticmethod
-    def draw_apriltag(frame: np.ndarray, detection):
-        """Draws the tag's bounding box, center, and ID on the frame."""
+    def draw_apriltag(frame: np.ndarray, apriltag: AprilTagDetection) -> None:
+        pts = np.array(apriltag.corners, dtype=np.int32)
         for i in range(4):
-            j = (i + 1) % 4
-            point1 = (int(detection.getCorner(i).x), int(detection.getCorner(i).y))
-            point2 = (int(detection.getCorner(j).x), int(detection.getCorner(j).y))
-            cv2.line(frame, point1, point2, (0, 255, 0), 2)
-
-        center_x = int(detection.getCenter().x)
-        center_y = int(detection.getCenter().y)
-
-        cv2.line(frame, (center_x - DisplayConfig.APRILTAG_CROSSHAIR_LINE_LENGTH, center_y), (center_x + DisplayConfig.APRILTAG_CROSSHAIR_LINE_LENGTH, center_y), (0, 0, 255), 2)
-        cv2.line(frame, (center_x, center_y - DisplayConfig.APRILTAG_CROSSHAIR_LINE_LENGTH), (center_x, center_y + DisplayConfig.APRILTAG_CROSSHAIR_LINE_LENGTH), (0, 0, 255), 2)
-
-        cv2.putText(frame, str(detection.getId()), (center_x + DisplayConfig.APRILTAG_CROSSHAIR_LINE_LENGTH, center_y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
-
-        return frame
+            cv2.line(frame, tuple(pts[i]), tuple(pts[(i + 1) % 4]), (0, 255, 0), 2)
+        c = tuple(np.array(apriltag.center, dtype=np.int32))
+        cv2.drawMarker(frame, c, (0, 0, 255), cv2.MARKER_CROSS, 30, 2)
+        pose = apriltag.pose_t.flatten()
+        dist = np.linalg.norm(pose)
+        text = f"ID {apriltag.tag_id} | {dist:.2f} m"
+        cv2.putText(frame, text, (c[0] + 10, c[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)

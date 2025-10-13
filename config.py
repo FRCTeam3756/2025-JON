@@ -1,5 +1,7 @@
 import logging
-from typing import Any, Dict, List
+from enum import Enum
+from typing import Dict, List
+from dataclasses import dataclass
 
 ###################################################################
 
@@ -16,25 +18,55 @@ class FieldConfig:
     FIELD_HEIGHT_M = 8.05
 
 
+@dataclass(frozen=True)
+class CameraParams:
+    HORIZONTAL_FOV_DEG: float
+    FRAME_WIDTH_PX: int
+    FRAME_HEIGHT_PX: int
+    DIAGONAL_SENSOR_WIDTH_MM: float
+    HORIZONTAL_SENSOR_WIDTH_MM: float
+    SPACE_BETWEEN_STEREO_CAMERAS_MM: float
+    VISION_RANGE_M: float
+    FOCAL_LENGTH_MM: float
 
-class CameraConfig:     # Video Camera
-    HORIZONTAL_FOV_DEG: float = 110
-    FOCAL_LENGTH_MM: float = 3.725
-    FRAME_WIDTH_PX: int = 640
-    FRAME_HEIGHT_PX: int = 640
-    DIAGONAL_SENSOR_WIDTH_MM: float = 6
-    SPACE_BETWEEN_STEREO_CAMERAS_MM: float = 0.0
-    VISION_RANGE_M: float = 20.0
+    @property
+    def FOCAL_LENGTH_PX(self) -> float:
+        return self.FOCAL_LENGTH_MM * self.FRAME_WIDTH_PX / self.HORIZONTAL_SENSOR_WIDTH_MM
 
-# class CameraConfig:     # Logitech C920
-#     HORIZONTAL_FOV_DEG: float = 59.6
-#     FOCAL_LENGTH_MM: float = 3.725
-#     FRAME_WIDTH_PX: int = 640
-#     FRAME_HEIGHT_PX: int = 640
-#     DIAGONAL_SENSOR_WIDTH_MM: float = 6
-#     SPACE_BETWEEN_STEREO_CAMERAS_MM: float = 0.0
-#     VISION_RANGE_M: float = 4.0
 
+class Cameras(Enum):
+    INSTA360_X4 = CameraParams(
+        HORIZONTAL_FOV_DEG=110,
+        FRAME_WIDTH_PX=640,
+        FRAME_HEIGHT_PX=640,
+        DIAGONAL_SENSOR_WIDTH_MM=9.06,
+        HORIZONTAL_SENSOR_WIDTH_MM=6.4,
+        SPACE_BETWEEN_STEREO_CAMERAS_MM=0.0,
+        VISION_RANGE_M=20.0,
+        FOCAL_LENGTH_MM=6.7
+    )
+    LOGITECH_C920 = CameraParams(
+        HORIZONTAL_FOV_DEG=70.42,
+        FRAME_WIDTH_PX=640,
+        FRAME_HEIGHT_PX=640,
+        DIAGONAL_SENSOR_WIDTH_MM=6.0,
+        HORIZONTAL_SENSOR_WIDTH_MM=4.8,
+        SPACE_BETWEEN_STEREO_CAMERAS_MM=0.0,
+        VISION_RANGE_M=20.0,
+        FOCAL_LENGTH_MM=3.67
+    )
+    LIFECAM_HD3000 = CameraParams(
+        HORIZONTAL_FOV_DEG=68,
+        FRAME_WIDTH_PX=640,
+        FRAME_HEIGHT_PX=640,
+        DIAGONAL_SENSOR_WIDTH_MM=4.14,
+        HORIZONTAL_SENSOR_WIDTH_MM=3.6,
+        SPACE_BETWEEN_STEREO_CAMERAS_MM=0.0,
+        VISION_RANGE_M=20.0,
+        FOCAL_LENGTH_MM=4.2
+    )
+
+CameraConfig = Cameras.INSTA360_X4.value
 
 class DisplayConfig:
     """Configuration settings for video output."""
@@ -62,7 +94,8 @@ class DetectorConfig:
 
 
 class AprilTagConfig:
-    APRILTAG_SIZE_CM: float = 22.86
+    TAG_FAMILY: str = "tag36h11"
+    APRILTAG_SIZE_MM: float = 165.1  # Inner Square
 
 
 class RamFernoRobotConfig:

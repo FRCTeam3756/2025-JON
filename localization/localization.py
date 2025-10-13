@@ -1,8 +1,6 @@
 import os
 import math
-from typing import List, Optional, Tuple
-
-from robotpy_apriltag import AprilTagDetection
+from typing import Tuple
 
 from config import FieldConfig
 from logs.logging_setup import setup_logger

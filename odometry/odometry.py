@@ -138,15 +138,18 @@ class Odometry:
             cv2.line(canvas, (px, py), (fx, fy), (0, 0, 0), 2)
 
     def draw_ramferno(self, canvas: np.ndarray, robot_x_m: float, robot_y_m: float, robot_heading_rad: float) -> None:
-        self.logger.debug(f"Drawing robot at ({robot_x_m:.2f}, {robot_y_m:.2f}) with heading {math.degrees(robot_heading_rad):.1f}°")
+        self.logger.debug(
+            f"Drawing robot at ({robot_x_m:.2f}, {robot_y_m:.2f}) with heading {math.degrees(robot_heading_rad):.1f}°")
 
         robot_field_x, robot_field_y = self.camera_to_canvas(
             robot_x_m, robot_y_m)
 
-        robot_half_width_px = (RamFernoRobotConfig.ROBOT_WIDTH_M * self.PIXELS_PER_METER) / 2
-        robot_half_length_px = (RamFernoRobotConfig.ROBOT_LENGTH_M * self.PIXELS_PER_METER) / 2
+        robot_half_width_px = (
+            RamFernoRobotConfig.ROBOT_WIDTH_M * self.PIXELS_PER_METER) / 2
+        robot_half_length_px = (
+            RamFernoRobotConfig.ROBOT_LENGTH_M * self.PIXELS_PER_METER) / 2
         corners = [
-            (-robot_half_length_px, -robot_half_width_px), # back left
+            (-robot_half_length_px, -robot_half_width_px),  # back left
             (robot_half_length_px, -robot_half_width_px),  # front left
             (robot_half_length_px, robot_half_width_px),   # front right
             (-robot_half_length_px, robot_half_width_px),  # back right
@@ -194,16 +197,18 @@ class Odometry:
         for cls, objs in list(self.game_pieces._data.items()):
             for obj in list(objs):
                 if obj.relative_distance_mm is None or obj.relative_angle_deg is None:
-                    self.logger.warning(f"Skipping {cls.__name__}: Missing distance or angle data.") 
+                    self.logger.warning(
+                        f"Skipping {cls.__name__}: Missing distance or angle data.")
                     continue
-                
+
                 obj_x_m, obj_y_m = self.object_world_coords(
                     obj.relative_distance_mm, obj.relative_angle_deg, robot_x_m, robot_y_m, robot_heading_rad
                 )
 
                 px, py = self.camera_to_canvas(obj_x_m, obj_y_m)
 
-                self.logger.debug(f"Drawing {cls.__name__} at ({px}, {py}) world=({obj_x_m:.2f},{obj_y_m:.2f})m")
+                self.logger.debug(
+                    f"Drawing {cls.__name__} at ({px}, {py}) world=({obj_x_m:.2f},{obj_y_m:.2f})m")
 
                 color = self.DETECTION_COLOR_MAP.get(cls, (200, 200, 200))
                 cv2.circle(canvas, (px, py), 6, color, -1)
@@ -280,7 +285,8 @@ class Odometry:
                     self.game_pieces._data[cls].remove(obj)
                     removed += 1
         if removed > 0:
-            self.logger.info(f"Removed {removed} objects that stayed within the vision cone.")
+            self.logger.info(
+                f"Removed {removed} objects that stayed within the vision cone.")
 
     def render_frame(self, robot_x_m: float, robot_y_m: float, robot_heading_rad: float) -> np.ndarray:
         canvas = np.zeros((self.IMG_H, self.IMG_W, 3), np.uint8)
