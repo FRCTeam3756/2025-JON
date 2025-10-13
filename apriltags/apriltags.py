@@ -3,7 +3,7 @@ import numpy as np
 from pupil_apriltags import Detector
 from typing import List, Optional
 
-from config import AprilTagConfig, CameraConfig
+from config import AprilTagConfig, CameraConfig, DisplayConfig
 
 
 class AprilTagDetection:
@@ -75,7 +75,7 @@ class AprilTagFinder:
                 scaled,
                 estimate_tag_pose=True,
                 camera_params=(CameraConfig.FOCAL_LENGTH_PX, CameraConfig.FOCAL_LENGTH_PX,
-                               CameraConfig.FRAME_WIDTH_PX / 2, CameraConfig.FRAME_HEIGHT_PX / 2),
+                               CameraConfig.NATIVE_FRAME_WIDTH_PX / 2, CameraConfig.NATIVE_FRAME_HEIGHT_PX / 2),
                 tag_size=(AprilTagConfig.APRILTAG_SIZE_MM / 1000)
             )
             tags = tags if isinstance(tags, list) else [tags]
@@ -84,7 +84,18 @@ class AprilTagFinder:
                     continue
                 detections.append(AprilTagDetection(tag, scale))
         detections = self.deduplicate(detections)
+        detections = self.normalize_tags(detections)
         return detections
+    
+    def normalize_tags(self, tags: List[AprilTagDetection]):
+        scale_x = DisplayConfig.FRAME_WIDTH_PX / CameraConfig.NATIVE_FRAME_WIDTH_PX
+        scale_y = DisplayConfig.FRAME_HEIGHT_PX / CameraConfig.NATIVE_FRAME_HEIGHT_PX
+        for tag in tags:
+            if tag.center:
+                tag.center = [tag.center[0] * scale_x, tag.center[1] * scale_y]
+            if tag.corners:
+                tag.corners = [[x * scale_x, y * scale_y] for x, y in tag.corners]
+        return tags
     
     @staticmethod
     def deduplicate(tags: List[AprilTagDetection]):
@@ -106,7 +117,7 @@ class AprilTagFinder:
     def get_best_tag(tags: List) -> Optional[AprilTagDetection]:
         if not tags:
             return None
-        cx, cy = CameraConfig.FRAME_WIDTH_PX / 2, CameraConfig.FRAME_HEIGHT_PX / 2
+        cx, cy = CameraConfig.NATIVE_FRAME_WIDTH_PX / 2, CameraConfig.NATIVE_FRAME_HEIGHT_PX / 2
         def score(t):
             size = np.mean([np.linalg.norm(np.array(t.corners[i]) - np.array(t.corners[(i + 1) % 4]))
                             for i in range(4)])

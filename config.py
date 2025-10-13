@@ -21,8 +21,8 @@ class FieldConfig:
 @dataclass(frozen=True)
 class CameraParams:
     HORIZONTAL_FOV_DEG: float
-    FRAME_WIDTH_PX: int
-    FRAME_HEIGHT_PX: int
+    NATIVE_FRAME_WIDTH_PX: int
+    NATIVE_FRAME_HEIGHT_PX: int
     DIAGONAL_SENSOR_WIDTH_MM: float
     HORIZONTAL_SENSOR_WIDTH_MM: float
     SPACE_BETWEEN_STEREO_CAMERAS_MM: float
@@ -31,14 +31,14 @@ class CameraParams:
 
     @property
     def FOCAL_LENGTH_PX(self) -> float:
-        return self.FOCAL_LENGTH_MM * self.FRAME_WIDTH_PX / self.HORIZONTAL_SENSOR_WIDTH_MM
+        return self.FOCAL_LENGTH_MM * self.NATIVE_FRAME_WIDTH_PX / self.HORIZONTAL_SENSOR_WIDTH_MM
 
 
 class Cameras(Enum):
     INSTA360_X4 = CameraParams(
         HORIZONTAL_FOV_DEG=110,
-        FRAME_WIDTH_PX=640,
-        FRAME_HEIGHT_PX=640,
+        NATIVE_FRAME_WIDTH_PX=1280,
+        NATIVE_FRAME_HEIGHT_PX=720,
         DIAGONAL_SENSOR_WIDTH_MM=9.06,
         HORIZONTAL_SENSOR_WIDTH_MM=6.4,
         SPACE_BETWEEN_STEREO_CAMERAS_MM=0.0,
@@ -47,8 +47,8 @@ class Cameras(Enum):
     )
     LOGITECH_C920 = CameraParams(
         HORIZONTAL_FOV_DEG=70.42,
-        FRAME_WIDTH_PX=640,
-        FRAME_HEIGHT_PX=640,
+        NATIVE_FRAME_WIDTH_PX=1920,
+        NATIVE_FRAME_HEIGHT_PX=1080,
         DIAGONAL_SENSOR_WIDTH_MM=6.0,
         HORIZONTAL_SENSOR_WIDTH_MM=4.8,
         SPACE_BETWEEN_STEREO_CAMERAS_MM=0.0,
@@ -57,8 +57,8 @@ class Cameras(Enum):
     )
     LIFECAM_HD3000 = CameraParams(
         HORIZONTAL_FOV_DEG=68,
-        FRAME_WIDTH_PX=640,
-        FRAME_HEIGHT_PX=640,
+        NATIVE_FRAME_WIDTH_PX=1280,
+        NATIVE_FRAME_HEIGHT_PX=720,
         DIAGONAL_SENSOR_WIDTH_MM=4.14,
         HORIZONTAL_SENSOR_WIDTH_MM=3.6,
         SPACE_BETWEEN_STEREO_CAMERAS_MM=0.0,
@@ -70,6 +70,8 @@ CameraConfig = Cameras.INSTA360_X4.value
 
 class DisplayConfig:
     """Configuration settings for video output."""
+    FRAME_WIDTH_PX=640
+    FRAME_HEIGHT_PX=640
     WINDOW_TITLE: str = 'Output Video'
     SHOW_VIDEO: bool = True
     SAVE_VIDEO: bool = True

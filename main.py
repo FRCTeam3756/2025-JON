@@ -46,7 +46,7 @@ def init() -> Tuple[Logger, GUI, RoboRio, Odometry, Localization, Processor, Alg
     if DisplayConfig.SAVE_VIDEO:
         fourcc = cv2.VideoWriter.fourcc(*'XVID')
         out = cv2.VideoWriter(DisplayConfig.OUTPUT_VIDEO_PATH, fourcc, 60.0,
-                              (CameraConfig.FRAME_WIDTH_PX, CameraConfig.FRAME_HEIGHT_PX), True)
+                              (DisplayConfig.FRAME_WIDTH_PX, DisplayConfig.FRAME_HEIGHT_PX), True)
 
     logger.info("System initialized successfully.")
     return logger, gui, roborio, odometry, localization, frame_processor, autoalgae, autocoral, autoreef, autoprocessor, cap, out
@@ -97,9 +97,9 @@ def testing_mainloop(logger: Logger, gui: GUI, odometry: Odometry, localization:
             if cx is not None and c0 is not None and c3 is not None:
                 distance = MonoVision.get_distance_to_object_in_mm(
                     AprilTagConfig.APRILTAG_SIZE_MM,
-                    abs(c0 - c3)
+                    abs(c0 - c3), DisplayConfig.FRAME_WIDTH_PX
                 )
-                angle = MonoVision.get_angle_to_object_in_degrees(cx)
+                angle = MonoVision.get_angle_to_object_in_degrees(cx, DisplayConfig.FRAME_WIDTH_PX)
                 robot_x_m, robot_y_m, robot_heading_rad = localization.get_world_position(closest_apriltag.id, distance, angle)
         odometry.game_pieces.add(visible_game_pieces)
         logger.debug(
@@ -118,7 +118,7 @@ def testing_mainloop(logger: Logger, gui: GUI, odometry: Odometry, localization:
                     best_algae)
                 if success:
                     angle = MonoVision.get_angle_to_object_in_degrees(
-                        best_algae.x)
+                        best_algae.x, DisplayConfig.FRAME_WIDTH_PX)
                     Display.draw_angle_line(frame, angle)
                     logger.info(
                         f'[TEST] Algae Nav - X: {x:.2f}, Y: {y:.2f}, ROT: {rot:.2f}')
@@ -138,7 +138,7 @@ def testing_mainloop(logger: Logger, gui: GUI, odometry: Odometry, localization:
                 processor_apriltag)
             if success and processor_apriltag.center_x:
                 angle_to_processor = MonoVision.get_angle_to_object_in_degrees(
-                    processor_apriltag.center_x)
+                    processor_apriltag.center_x, DisplayConfig.FRAME_WIDTH_PX)
                 Display.draw_angle_line(frame, angle_to_processor)
                 logger.info(
                     f'[TEST] Target Movement - X: {x}, Y: {y}, ROT: {rot}')
@@ -246,7 +246,7 @@ def competition_mainloop(logger: Logger, gui: GUI, frame_processor: Processor, r
                     target_coral = autocoral.compute_best_coral(corals)
                     if target_coral and target_coral.x:
                         angle = MonoVision.get_angle_to_object_in_degrees(
-                            target_coral.x)
+                            target_coral.x, DisplayConfig.FRAME_WIDTH_PX)
                         Display.draw_angle_line(frame, angle)
                         logger.info(
                             f'[TELEOP] Aligning to Coral — Angle: {angle:.2f}°')
