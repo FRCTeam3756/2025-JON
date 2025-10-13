@@ -10,7 +10,7 @@ from logs.logging_setup import setup_logger
 
 from mainloops.simulation import simulation
 from mainloops.competition import competition
-from gui import GUI
+from src.gui import GUI
 from config import DebugConfig, DisplayConfig
 from networking.roborio import RoboRio
 from odometry.odometry import Odometry

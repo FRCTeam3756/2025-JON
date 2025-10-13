@@ -11,7 +11,7 @@ import numpy as np
 
 from config import AutoAlgaeConfig, AutoCoralConfig, AutoHangConfig, AutoRobotConfig, CameraConfig, DetectorConfig, DisplayConfig, LoggingConfig
 from vision.detector import Detector
-from display import Display
+from src.display import Display
 from apriltags.apriltags import AprilTagDetection, AprilTagFinder
 from navigator.trackable_objects import Algae, Cage, Coral, GamePieces, Robot
 from camera.monovision import MonoVision

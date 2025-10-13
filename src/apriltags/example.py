@@ -1,6 +1,6 @@
 import cv2
 
-from display import Display
+from src.display import Display
 from config import DisplayConfig
 from apriltags.apriltags import AprilTagFinder
 

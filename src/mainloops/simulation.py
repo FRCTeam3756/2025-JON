@@ -8,8 +8,8 @@ import cv2
 from apriltags.apriltags import AprilTagDetection, AprilTagFinder
 from camera.monovision import MonoVision
 from config import DebugConfig, DisplayConfig
-from display import Display
-from gui import GUI
+from src.display import Display
+from src.gui import GUI
 from localization.localization import Localization
 from navigator.autoalgae import AlgaePickupCommand
 from navigator.autocoral import CoralPickupCommand

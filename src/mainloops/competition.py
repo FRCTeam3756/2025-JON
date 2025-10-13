@@ -7,7 +7,7 @@ import cv2
 from apriltags.apriltags import AprilTagDetection
 from camera.monovision import MonoVision
 from config import DisplayConfig
-from display import Display
+from src.display import Display
 from navigator.autoalgae import AlgaePickupCommand
 from navigator.autocoral import CoralPickupCommand
 from navigator.autoprocessor import ProcessorScoringCommand
