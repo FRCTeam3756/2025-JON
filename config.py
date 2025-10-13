@@ -73,8 +73,6 @@ class DisplayConfig:
     FRAME_WIDTH_PX=640
     FRAME_HEIGHT_PX=640
     WINDOW_TITLE: str = 'Output Video'
-    SHOW_VIDEO: bool = True
-    SAVE_VIDEO: bool = True
     ROTATE_IMAGE: bool = False
     FLIP_IMAGE_HORIZONTALLY: bool = False
     FLIP_IMAGE_VERTICALLY: bool = False
