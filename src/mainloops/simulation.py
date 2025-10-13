@@ -41,16 +41,6 @@ def simulation(logger: Logger, gui: GUI, odometry: Odometry, localization: Local
         camera_frame, visible_game_pieces, apriltags = frame_processor.process_frame(
             frame)
         t3 = time.perf_counter()
-        frame_processor.calculate_frame_rate()
-
-        keycode = cv2.waitKey(1) & 0xFF
-        if keycode != 255:  # no key pressed
-            key_char = chr(keycode)
-            if key_char in DebugConfig.TASK_KEYS:
-                current_key = key_char
-        if not current_key:
-            current_key = DebugConfig.DEFAULT_KEY
-        t4 = time.perf_counter()
 
         processor_id = 3
         reef_ids = {6, 7, 8, 9, 10, 11}
@@ -65,14 +55,14 @@ def simulation(logger: Logger, gui: GUI, odometry: Odometry, localization: Local
         closest_apriltag = AprilTagFinder.get_best_tag(apriltags)
         if closest_apriltag and closest_apriltag.relative_distance and closest_apriltag.relative_angle:
             robot_x_m, robot_y_m, robot_heading_rad = localization.get_world_position(closest_apriltag.id, closest_apriltag.relative_distance, closest_apriltag.relative_angle)
-        t5 = time.perf_counter()
+        t4 = time.perf_counter()
 
         odometry.game_pieces.add(visible_game_pieces)
         logger.debug(
             f'[DEBUG]: Sending {len(visible_game_pieces.get_all())} objects to odometry')
         odometry_frame = odometry.process_frame(
             robot_x_m, robot_y_m, robot_heading_rad)
-        t6 = time.perf_counter()
+        t5 = time.perf_counter()
 
         x = y = rot = 0.0
         success = False
@@ -103,7 +93,7 @@ def simulation(logger: Logger, gui: GUI, odometry: Odometry, localization: Local
                     f'[TEST] Target Movement - X: {x}, Y: {y}, ROT: {rot}')
             else:
                 logger.warning("[TEST] Cannot Pathfind to Processor")
-        t7 = time.perf_counter()
+        t6 = time.perf_counter()
 
         messages.append(current_key)
         messages.append(f'X: {x}, Y: {y}, R: {rot}')
@@ -111,7 +101,7 @@ def simulation(logger: Logger, gui: GUI, odometry: Odometry, localization: Local
         messages.clear()
         gui.update(camera_frame, odometry_frame)
         out.write(camera_frame)
-        t8 = time.perf_counter()
+        t7 = time.perf_counter()
         
         frame_end = time.perf_counter()
         total_time_ms = (frame_end - frame_start) * 1000
@@ -121,11 +111,10 @@ def simulation(logger: Logger, gui: GUI, odometry: Odometry, localization: Local
             f"[TIMING] Frame Capture: {(t1 - t0)*1000:.2f} ms | "
             f"Transform: {(t2 - t1)*1000:.2f} ms | "
             f"Process Frame: {(t3 - t2)*1000:.2f} ms | "
-            f"Input Handling: {(t4 - t3)*1000:.2f} ms | "
-            f"Localization: {(t5 - t4)*1000:.2f} ms | "
-            f"Odometry: {(t6 - t5)*1000:.2f} ms | "
-            f"Navigation: {(t7 - t6)*1000:.2f} ms | "
-            f"Display/GUI: {(t8 - t7)*1000:.2f} ms | "
+            f"Localization: {(t4 - t3)*1000:.2f} ms | "
+            f"Odometry: {(t5 - t4)*1000:.2f} ms | "
+            f"Navigation: {(t6 - t5)*1000:.2f} ms | "
+            f"Display/GUI: {(t7 - t6)*1000:.2f} ms | "
             f"TOTAL: {total_time_ms:.2f} ms"
         ))
 

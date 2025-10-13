@@ -1,13 +1,16 @@
 import os
-from queue import Empty, Queue
-import threading
 import cv2
 import math
 import numpy as np
-from pupil_apriltags import Detector
+from queue import Empty, Queue
 from typing import List, Optional
+from threading import Lock, Thread
+
+from pupil_apriltags import Detector
 
 from config import AprilTagConfig, CameraConfig, DisplayConfig
+
+###############################################################
 
 
 class AprilTagDetection:
@@ -145,11 +148,11 @@ class AprilTagFinder:
 class AsyncAprilTagFinder(AprilTagFinder):
     def __init__(self):
         super().__init__()
-        self.frame_queue = Queue(maxsize=2) 
-        self.result_lock = threading.Lock()
+        self.frame_queue = Queue(maxsize=1) 
+        self.result_lock = Lock()
         self.latest_tags = []
         self.running = True
-        self.thread = threading.Thread(target=self._process_loop, daemon=True)
+        self.thread = Thread(target=self._process_loop, daemon=True)
         self.thread.start()
 
     def _process_loop(self):

@@ -1,9 +1,11 @@
 import os
-import logging
-
-import platform
 import re
-from typing import Tuple, List
+import logging
+import platform
+import time
+from typing import Optional, Tuple, List
+from queue import Queue, Empty
+from threading import Lock, Thread
 
 import torch
 import numpy as np
@@ -14,7 +16,7 @@ from logs.logging_setup import setup_logger
 
 ###############################################################
 
-class Detector:
+class YOLODetector:
     def __init__(self) -> None:
         file_name = os.path.splitext(os.path.basename(__file__))[0]
         setup_logger(file_name)
@@ -71,3 +73,51 @@ class Detector:
                 class_ids.append(int(box.cls[0]))
 
         return np.array(boxes), np.array(confidences), np.array(class_ids)
+
+class AsyncYOLODetector(YOLODetector):
+    def __init__(self):
+        super().__init__()
+        self.frame_queue = Queue(maxsize=1)
+        self.result_lock = Lock()
+        self.latest_detections: Optional[Tuple[np.ndarray, np.ndarray, np.ndarray]] = None
+        self.running = True
+        self.thread = Thread(target=self._process_loop, daemon=True)
+        self.thread.start()
+
+    def _process_loop(self):
+        while self.running:
+            try:
+                frame = self.frame_queue.get(timeout=0.05)
+            except Empty:
+                continue
+
+            try:
+                boxes, confidences, class_ids = super().detect(frame)
+                result = (boxes, confidences, class_ids)
+                with self.result_lock:
+                    self.latest_detections = result
+            except Exception as e:
+                print(f"[AsyncDetector] Error during detection: {e}")
+                time.sleep(0.01)
+
+    def submit_frame(self, frame: np.ndarray):
+        if not self.running:
+            return
+        
+        if self.frame_queue.full():
+            try:
+                self.frame_queue.get_nowait()
+            except:
+                pass
+        self.frame_queue.put(frame)
+
+    def get_latest_detections(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        with self.result_lock:
+            if self.latest_detections is not None:
+                return self.latest_detections
+            else:
+                return np.empty((0, 4), dtype=int), np.empty((0,), dtype=float), np.empty((0,), dtype=int)
+
+    def stop(self):
+        self.running = False
+        self.thread.join()

@@ -10,8 +10,8 @@ import torchvision
 import numpy as np
 
 from config import AutoAlgaeConfig, AutoCoralConfig, AutoHangConfig, AutoRobotConfig, DetectorConfig, DisplayConfig, LoggingConfig
-from src.vision.detector import Detector
 from src.display import Display
+from src.vision.detector import AsyncYOLODetector
 from src.apriltags.apriltags import AprilTagDetection, AsyncAprilTagFinder
 from src.navigator.trackable_objects import Algae, Cage, Coral, GamePieces, Robot
 from src.camera.monovision import MonoVision
@@ -27,7 +27,7 @@ class Processor:
 
         self.logger.info(
             f'Using device: {"GPU" if torch.cuda.is_available() else "MPS" if torch.mps.is_available() else "CPU"}')
-        self.yolo_detector = Detector()
+        self.yolo_detector = AsyncYOLODetector()
         self.apriltag_detector = AsyncAprilTagFinder()
         self.start_time = time.time()
         self.frame_count = 0
@@ -53,9 +53,9 @@ class Processor:
         frame = cv2.resize(
             frame, (DisplayConfig.FRAME_WIDTH_PX, DisplayConfig.FRAME_HEIGHT_PX))
         t2 = time.perf_counter()
-        boxes, confidences, class_ids = self.yolo_detector.detect(frame)
+        self.yolo_detector.submit_frame(frame)
+        boxes, confidences, class_ids = self.yolo_detector.get_latest_detections()
         t3 = time.perf_counter()
-
 
         if boxes.size > 0:
             indices = self.apply_nms(boxes, confidences)
