@@ -8,7 +8,7 @@ from localization.localization import Localization
 from logs.logging_setup import setup_logger
 
 from gui import GUI
-from config import AprilTagConfig, CameraConfig, DebugConfig, DisplayConfig
+from config import AprilTagConfig, DebugConfig, DisplayConfig
 from networking.rio_communication import RoboRio
 from camera.monovision import MonoVision
 from odometry.odometry import Odometry
@@ -89,18 +89,8 @@ def testing_mainloop(logger: Logger, gui: GUI, odometry: Odometry, localization:
             tag for tag in apriltags if tag.id in reef_ids
         ]
         closest_apriltag = AprilTagFinder.get_best_tag(apriltags)
-        if closest_apriltag is not None:
-            cx = closest_apriltag.center_x
-            c0 = closest_apriltag.corner_x(0)
-            c3 = closest_apriltag.corner_x(3)
-
-            if cx is not None and c0 is not None and c3 is not None:
-                distance = MonoVision.get_distance_to_object_in_mm(
-                    AprilTagConfig.APRILTAG_SIZE_MM,
-                    abs(c0 - c3), DisplayConfig.FRAME_WIDTH_PX
-                )
-                angle = MonoVision.get_angle_to_object_in_degrees(cx, DisplayConfig.FRAME_WIDTH_PX)
-                robot_x_m, robot_y_m, robot_heading_rad = localization.get_world_position(closest_apriltag.id, distance, angle)
+        if closest_apriltag and closest_apriltag.relative_distance and closest_apriltag.relative_angle:
+            robot_x_m, robot_y_m, robot_heading_rad = localization.get_world_position(closest_apriltag.id, closest_apriltag.relative_distance, closest_apriltag.relative_angle)
         odometry.game_pieces.add(visible_game_pieces)
         logger.debug(
             f'[DEBUG]: Sending {len(visible_game_pieces.get_all())} objects to odometry')

@@ -1,4 +1,5 @@
 import cv2
+import math
 import numpy as np
 from pupil_apriltags import Detector
 from typing import List, Optional
@@ -29,6 +30,23 @@ class AprilTagDetection:
     @property
     def center_y(self) -> Optional[float]:
         return self.center[1] if self.center is not None else None
+    
+    @property
+    def id(self):
+        return self.tag_id
+    
+    @property
+    def relative_distance(self) -> Optional[float]:
+        pose = self.pose_t.flatten()
+        distance = np.linalg.norm(pose)
+        return float(distance)
+    
+    @property
+    def relative_angle(self) -> Optional[float]:
+        if self.center_x:
+            return math.degrees(math.atan((self.center_x - (CameraConfig.NATIVE_FRAME_WIDTH_PX / 2)) / (CameraConfig.NATIVE_FRAME_WIDTH_PX / (2 * math.tan(math.radians(CameraConfig.HORIZONTAL_FOV_DEG) / 2)))))
+        else:
+            return None
 
     def corner_x(self, index: int) -> Optional[float]:
         """Return the x-coordinate of corner 0-3."""
@@ -42,10 +60,6 @@ class AprilTagDetection:
             return None
         return self.corners[index][1]
     
-    @property
-    def id(self):
-        return self.tag_id
-
 class AprilTagFinder:
     def __init__(self) -> None:
         self.detector = Detector(
