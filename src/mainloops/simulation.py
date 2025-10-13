@@ -95,15 +95,12 @@ def simulation(logger: Logger, gui: GUI, odometry: Odometry, localization: Local
             else:
                 logger.warning("[TEST] Cannot Pathfind to Processor")
 
-        if DebugConfig.TESTING:
-            messages.append(current_key)
-            messages.append(f'X: {x}, Y: {y}, R: {rot}')
-            Display.insert_text_onto_frame(frame, messages)
-            messages.clear()
-            gui.update(camera_frame, odometry_frame)
+        messages.append(current_key)
+        messages.append(f'X: {x}, Y: {y}, R: {rot}')
+        Display.insert_text_onto_frame(frame, messages)
+        messages.clear()
+        gui.update(camera_frame, odometry_frame)
+        out.write(camera_frame)
 
-        if out:
-            out.write(camera_frame)
-
-        if DebugConfig.TESTING and ((cv2.waitKey(1) & 0xFF) == ord('q')):
+        if (cv2.waitKey(1) & 0xFF) == ord('q'):
             break

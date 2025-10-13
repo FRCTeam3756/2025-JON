@@ -9,7 +9,7 @@ import torch
 import torchvision
 import numpy as np
 
-from config import AutoAlgaeConfig, AutoCoralConfig, AutoHangConfig, AutoRobotConfig, CameraConfig, DetectorConfig, DisplayConfig, LoggingConfig
+from config import AutoAlgaeConfig, AutoCoralConfig, AutoHangConfig, AutoRobotConfig, DetectorConfig, DisplayConfig, LoggingConfig
 from src.vision.detector import Detector
 from src.display import Display
 from src.apriltags.apriltags import AprilTagDetection, AprilTagFinder
@@ -27,12 +27,11 @@ class Processor:
 
         self.logger.info(
             f'Using device: {"GPU" if torch.cuda.is_available() else "MPS" if torch.mps.is_available() else "CPU"}')
-        self.yolo_detector: Detector = Detector(
-            DetectorConfig.WEIGHTS_LOCATION, DetectorConfig.CONFIDENCE_THRESHOLD)
-        self.apriltag_detector: AprilTagFinder = AprilTagFinder()
-        self.start_time: float = time.time()
-        self.frame_count: int = 0
-        self.game_pieces: GamePieces = GamePieces()
+        self.yolo_detector = Detector()
+        self.apriltag_detector = AprilTagFinder()
+        self.start_time = time.time()
+        self.frame_count = 0
+        self.game_pieces = GamePieces()
 
     def transform_frame(self, frame: np.ndarray) -> np.ndarray:
         if DisplayConfig.ROTATE_IMAGE:

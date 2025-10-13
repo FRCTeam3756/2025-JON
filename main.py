@@ -1,9 +1,9 @@
-from dataclasses import dataclass
 import os
 import cv2
 import logging
-from logging import Logger
 from typing import Tuple
+from logging import Logger
+from dataclasses import dataclass
 
 from logs.logging_setup import setup_logger
 from config import DebugConfig, DisplayConfig

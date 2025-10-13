@@ -14,8 +14,8 @@ class DebugConfig:
 
 
 class FieldConfig:
-    FIELD_WIDTH_M = 17.55
-    FIELD_HEIGHT_M = 8.05
+    FIELD_WIDTH_M: float = 17.55
+    FIELD_HEIGHT_M: float = 8.05
 
 
 @dataclass(frozen=True)
@@ -70,8 +70,8 @@ CameraConfig = Cameras.INSTA360_X4.value
 
 class DisplayConfig:
     """Configuration settings for video output."""
-    FRAME_WIDTH_PX=640
-    FRAME_HEIGHT_PX=640
+    FRAME_WIDTH_PX: int = 640
+    FRAME_HEIGHT_PX: int = 640
     WINDOW_TITLE: str = 'Output Video'
     ROTATE_IMAGE: bool = False
     FLIP_IMAGE_HORIZONTALLY: bool = False
@@ -90,7 +90,7 @@ class DisplayConfig:
 class DetectorConfig:
     IOU_THRESHOLD: float = 0.5
     CONFIDENCE_THRESHOLD: float = 0.5
-    WEIGHTS_LOCATION: str = 'src/vision/weights/best.onnx'
+    WEIGHTS_LOCATION: str = 'src/vision/weights/'
 
 
 class AprilTagConfig:
