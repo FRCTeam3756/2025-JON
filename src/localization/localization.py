@@ -60,17 +60,17 @@ class Localization:
             raise ValueError(f"AprilTag {apriltag_number} not found.")
 
         tag_x_m, tag_y_m, tag_rotation_deg = self.APRILTAG_POSITIONS[apriltag_number]
+        tag_heading_rad = math.radians(tag_rotation_deg)
 
         dist_m = relative_distance_mm * 0.001
-        tag_heading_rad = math.radians(tag_rotation_deg)
         rel_angle_rad = math.radians(relative_angle_deg)
 
-        robot_heading_rad = tag_heading_rad - rel_angle_rad
+        robot_heading_rad = tag_heading_rad + math.pi + rel_angle_rad
 
-        tag_rel_x = dist_m * math.cos(rel_angle_rad)
-        tag_rel_y = dist_m * math.sin(rel_angle_rad)
+        robot_rel_x = -dist_m * math.cos(rel_angle_rad)
+        robot_rel_y = -dist_m * math.sin(rel_angle_rad)
 
-        robot_x_m = tag_x_m - (math.cos(tag_heading_rad) * tag_rel_x - math.sin(tag_heading_rad) * tag_rel_y)
-        robot_y_m = tag_y_m - (math.sin(tag_heading_rad) * tag_rel_x + math.cos(tag_heading_rad) * tag_rel_y)
+        robot_x_m = tag_x_m + (robot_rel_x * math.cos(tag_heading_rad) - robot_rel_y * math.sin(tag_heading_rad))
+        robot_y_m = tag_y_m + (robot_rel_y * math.sin(tag_heading_rad) + robot_rel_y * math.cos(tag_heading_rad))
 
         return robot_x_m, robot_y_m, robot_heading_rad

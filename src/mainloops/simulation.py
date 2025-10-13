@@ -5,19 +5,19 @@ from typing import List, Optional
 
 import cv2
 
-from apriltags.apriltags import AprilTagDetection, AprilTagFinder
-from camera.monovision import MonoVision
 from config import DebugConfig, DisplayConfig
+from src.apriltags.apriltags import AprilTagDetection, AprilTagFinder
+from src.camera.monovision import MonoVision
 from src.display import Display
 from src.gui import GUI
-from localization.localization import Localization
-from navigator.autoalgae import AlgaePickupCommand
-from navigator.autocoral import CoralPickupCommand
-from navigator.autoprocessor import ProcessorScoringCommand
-from navigator.autoreef import ReefScoringCommand
-from navigator.trackable_objects import Algae
-from odometry.odometry import Odometry
-from vision.processor import Processor
+from src.localization.localization import Localization
+from src.navigator.autoalgae import AlgaePickupCommand
+from src.navigator.autocoral import CoralPickupCommand
+from src.navigator.autoprocessor import ProcessorScoringCommand
+from src.navigator.autoreef import ReefScoringCommand
+from src.navigator.trackable_objects import Algae
+from src.odometry.odometry import Odometry
+from src.vision.processor import Processor
 
 
 def simulation(logger: Logger, gui: GUI, odometry: Odometry, localization: Localization, frame_processor: Processor, autoalgae: AlgaePickupCommand, autocoral: CoralPickupCommand, autoreef: ReefScoringCommand, autoprocessor: ProcessorScoringCommand, cap: cv2.VideoCapture, out: cv2.VideoWriter) -> None:

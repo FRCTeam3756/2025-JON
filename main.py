@@ -3,22 +3,22 @@ import os
 import cv2
 import logging
 from logging import Logger
-from typing import Optional, Tuple
+from typing import Tuple
 
-from localization.localization import Localization
 from logs.logging_setup import setup_logger
-
-from mainloops.simulation import simulation
-from mainloops.competition import competition
-from src.gui import GUI
 from config import DebugConfig, DisplayConfig
-from networking.roborio import RoboRio
-from odometry.odometry import Odometry
-from vision.processor import Processor
-from navigator.autoalgae import AlgaePickupCommand
-from navigator.autocoral import CoralPickupCommand
-from navigator.autoreef import ReefScoringCommand
-from navigator.autoprocessor import ProcessorScoringCommand
+
+from src.mainloops.simulation import simulation
+from src.mainloops.competition import competition
+from src.localization.localization import Localization
+from src.gui import GUI
+from src.networking.roborio import RoboRio
+from src.odometry.odometry import Odometry
+from src.vision.processor import Processor
+from src.navigator.autoalgae import AlgaePickupCommand
+from src.navigator.autocoral import CoralPickupCommand
+from src.navigator.autoreef import ReefScoringCommand
+from src.navigator.autoprocessor import ProcessorScoringCommand
 
 ###############################################################
 

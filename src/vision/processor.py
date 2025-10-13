@@ -10,11 +10,11 @@ import torchvision
 import numpy as np
 
 from config import AutoAlgaeConfig, AutoCoralConfig, AutoHangConfig, AutoRobotConfig, CameraConfig, DetectorConfig, DisplayConfig, LoggingConfig
-from vision.detector import Detector
+from src.vision.detector import Detector
 from src.display import Display
-from apriltags.apriltags import AprilTagDetection, AprilTagFinder
-from navigator.trackable_objects import Algae, Cage, Coral, GamePieces, Robot
-from camera.monovision import MonoVision
+from src.apriltags.apriltags import AprilTagDetection, AprilTagFinder
+from src.navigator.trackable_objects import Algae, Cage, Coral, GamePieces, Robot
+from src.camera.monovision import MonoVision
 
 ###############################################################
 

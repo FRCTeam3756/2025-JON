@@ -4,7 +4,7 @@ from typing import Optional, Tuple, List
 from logs.logging_setup import setup_logger
 
 from config import AutoCoralConfig
-from navigator.trackable_objects import Coral
+from src.navigator.trackable_objects import Coral
 
 ################################################
 

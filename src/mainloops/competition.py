@@ -4,17 +4,17 @@ from typing import List, Optional
 
 import cv2
 
-from apriltags.apriltags import AprilTagDetection
-from camera.monovision import MonoVision
 from config import DisplayConfig
+from src.apriltags.apriltags import AprilTagDetection
+from src.camera.monovision import MonoVision
 from src.display import Display
-from navigator.autoalgae import AlgaePickupCommand
-from navigator.autocoral import CoralPickupCommand
-from navigator.autoprocessor import ProcessorScoringCommand
-from navigator.autoreef import ReefScoringCommand
-from navigator.trackable_objects import Algae, Coral
-from networking.roborio import RoboRio
-from vision.processor import Processor
+from src.navigator.autoalgae import AlgaePickupCommand
+from src.navigator.autocoral import CoralPickupCommand
+from src.navigator.autoprocessor import ProcessorScoringCommand
+from src.navigator.autoreef import ReefScoringCommand
+from src.navigator.trackable_objects import Algae, Coral
+from src.networking.roborio import RoboRio
+from src.vision.processor import Processor
 
 def competition(logger: Logger, frame_processor: Processor, roborio: RoboRio, autoalgae: AlgaePickupCommand, autocoral: CoralPickupCommand, autoreef: ReefScoringCommand, autoprocessor: ProcessorScoringCommand, cap: cv2.VideoCapture, out: cv2.VideoWriter) -> None:
     messages: List = []

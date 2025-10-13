@@ -3,7 +3,7 @@ import math
 import numpy as np
 from typing import List, Tuple, Union
 
-from apriltags.apriltags import AprilTagDetection
+from src.apriltags.apriltags import AprilTagDetection
 from config import DisplayConfig
 
 class Display:

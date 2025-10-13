@@ -5,7 +5,7 @@ from typing import Optional, Tuple, List
 from logs.logging_setup import setup_logger
 
 from config import AutoAlgaeConfig
-from navigator.trackable_objects import Algae
+from src.navigator.trackable_objects import Algae
 
 ################################################
 

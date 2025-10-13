@@ -6,7 +6,7 @@ from typing import Tuple
 
 from config import CameraConfig, FieldConfig, RamFernoRobotConfig
 from logs.logging_setup import setup_logger
-from navigator.trackable_objects import Algae, Coral, Cage, GamePieces, Robot
+from src.navigator.trackable_objects import Algae, Coral, Cage, GamePieces, Robot
 
 
 class Odometry:

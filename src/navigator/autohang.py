@@ -1,7 +1,7 @@
 import os
 import logging
 from typing import List, Optional, Tuple
-from config import CameraConfig, DisplayConfig, AutoHangConfig
+from config import DisplayConfig, AutoHangConfig
 from logs.logging_setup import setup_logger
 
 
@@ -38,9 +38,9 @@ class HangDriveCommand:
 
         best_cage: List[float] = max(
             cages,
-            key=lambda cage: ((cage[2] / CameraConfig.FRAME_WIDTH_PX) * AutoHangConfig.CAGE_SIZE_WEIGHT_PCT) +
-            ((1 - abs(cage[0] - CameraConfig.FRAME_WIDTH_PX / 2) /
-             (CameraConfig.FRAME_WIDTH_PX / 2)) * AutoHangConfig.CAGE_CENTERED_WEIGHT_PCT)
+            key=lambda cage: ((cage[2] / DisplayConfig.FRAME_WIDTH_PX) * AutoHangConfig.CAGE_SIZE_WEIGHT_PCT) +
+            ((1 - abs(cage[0] - DisplayConfig.FRAME_WIDTH_PX / 2) /
+             (DisplayConfig.FRAME_WIDTH_PX / 2)) * AutoHangConfig.CAGE_CENTERED_WEIGHT_PCT)
         )
         return best_cage
 
@@ -48,8 +48,8 @@ class HangDriveCommand:
         if not cage:
             return 0.0
 
-        strafe_amount = (cage[0] - CameraConfig.FRAME_WIDTH_PX / 2) / \
-            (CameraConfig.FRAME_WIDTH_PX / 2) if cage else 0.0
+        strafe_amount = (cage[0] - DisplayConfig.FRAME_WIDTH_PX / 2) / \
+            (DisplayConfig.FRAME_WIDTH_PX / 2) if cage else 0.0
 
         strafe_amount = self.clamp(
             strafe_amount, -AutoHangConfig.POLE_STRAFING_MAXIMUM_PCT, AutoHangConfig.POLE_STRAFING_MINIMUM_PCT)
@@ -60,4 +60,4 @@ class HangDriveCommand:
         return cage[2] / 640 if cage else 0.0
 
     def get_rotation_amount(self, cage: List[float]) -> float:
-        return (cage[0] - CameraConfig.FRAME_WIDTH_PX / 2) / (CameraConfig.FRAME_WIDTH_PX / 2) if cage else 0.0
+        return (cage[0] - DisplayConfig.FRAME_WIDTH_PX / 2) / (DisplayConfig.FRAME_WIDTH_PX / 2) if cage else 0.0

@@ -90,7 +90,7 @@ class DisplayConfig:
 class DetectorConfig:
     IOU_THRESHOLD: float = 0.5
     CONFIDENCE_THRESHOLD: float = 0.5
-    WEIGHTS_LOCATION: str = 'vision/weights/best.onnx'
+    WEIGHTS_LOCATION: str = 'src/vision/weights/best.onnx'
 
 
 class AprilTagConfig:
