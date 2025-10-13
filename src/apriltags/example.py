@@ -1,8 +1,8 @@
 import cv2
 
-from src.display import Display
 from config import DisplayConfig
-from apriltags.apriltags import AprilTagFinder
+from src.display import Display
+from src.apriltags.apriltags import AprilTagFinder
 
 if __name__ == "__main__":
     cap = cv2.VideoCapture(DisplayConfig.INPUT_PATH)

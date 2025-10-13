@@ -12,7 +12,7 @@ import numpy as np
 from config import AutoAlgaeConfig, AutoCoralConfig, AutoHangConfig, AutoRobotConfig, DetectorConfig, DisplayConfig, LoggingConfig
 from src.vision.detector import Detector
 from src.display import Display
-from src.apriltags.apriltags import AprilTagDetection, AprilTagFinder
+from src.apriltags.apriltags import AprilTagDetection, AsyncAprilTagFinder
 from src.navigator.trackable_objects import Algae, Cage, Coral, GamePieces, Robot
 from src.camera.monovision import MonoVision
 
@@ -28,7 +28,7 @@ class Processor:
         self.logger.info(
             f'Using device: {"GPU" if torch.cuda.is_available() else "MPS" if torch.mps.is_available() else "CPU"}')
         self.yolo_detector = Detector()
-        self.apriltag_detector = AprilTagFinder()
+        self.apriltag_detector = AsyncAprilTagFinder()
         self.start_time = time.time()
         self.frame_count = 0
         self.game_pieces = GamePieces()
@@ -46,24 +46,43 @@ class Processor:
     def process_frame(self, frame: np.ndarray) -> Tuple[np.ndarray, GamePieces, List[AprilTagDetection]]:
         """Processes a single frame for detections and annotations."""
           # Find apriltags before resizing for better accuracy
-        apriltags = self.apriltag_detector.detect_tags(
-            frame)  
+        t_start = time.perf_counter()
+        t0 = time.perf_counter()
+        self.apriltag_detector.submit_frame(frame)
+        t1 = time.perf_counter()
         frame = cv2.resize(
             frame, (DisplayConfig.FRAME_WIDTH_PX, DisplayConfig.FRAME_HEIGHT_PX))
+        t2 = time.perf_counter()
         boxes, confidences, class_ids = self.yolo_detector.detect(frame)
+        t3 = time.perf_counter()
+
 
         if boxes.size > 0:
             indices = self.apply_nms(boxes, confidences)
 
             boxes_filtered, confidences_filtered, class_ids_filtered = boxes[
                 indices], confidences[indices], class_ids[indices]
-
+            
+            t4 = time.perf_counter()
             frame = Display.annotate_frame(
-                frame, boxes_filtered, class_ids_filtered, apriltags)
+                frame, boxes_filtered, class_ids_filtered, self.apriltag_detector.get_latest_tags())
             self.update_game_pieces(
                 boxes_filtered, confidences_filtered, class_ids_filtered)
+            t5 = time.perf_counter()
+        else:
+            t4 = t5 = t3
 
-        return frame, self.game_pieces, apriltags
+        t_end = time.perf_counter()
+        
+        self.logger.debug((
+            f"[TIMING] Apriltag: {(t1 - t0)*1000:.2f} ms | "
+            f"Resize: {(t2 - t1)*1000:.2f} ms | "
+            f"YOLO Detect: {(t3 - t2)*1000:.2f} ms | "
+            f"NMS+Update: {(t5 - t4)*1000:.2f} ms | "
+            f"TOTAL: {(t_end - t_start)*1000:.2f} ms"
+        ))
+
+        return frame, self.game_pieces, self.apriltag_detector.get_latest_tags()
 
     def extract_features(self, x1: int, y1: int, x2: int, y2: int) -> Tuple[int, int, float, float]:
         """Extract object features."""

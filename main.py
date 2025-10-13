@@ -99,6 +99,7 @@ if __name__ == "__main__":
                 systems.autoprocessor, systems.cap, systems.out
             )
     finally:
+        systems.processor.apriltag_detector.stop()
         systems.cap.release()
         systems.out.release()
         systems.gui.close()

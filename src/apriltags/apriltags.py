@@ -1,3 +1,6 @@
+import os
+from queue import Empty, Queue
+import threading
 import cv2
 import math
 import numpy as np
@@ -64,7 +67,7 @@ class AprilTagFinder:
     def __init__(self) -> None:
         self.detector = Detector(
             families=AprilTagConfig.TAG_FAMILY,
-            nthreads=1,
+            nthreads=os.cpu_count() or 1,
             quad_decimate=1.0,  # no downscaling
             quad_sigma=1.0,     # blur for noise tolerance
             refine_edges=True,
@@ -138,3 +141,37 @@ class AprilTagFinder:
             offset = np.linalg.norm(np.array(t.center) - np.array([cx, cy]))
             return size - 0.5 * offset
         return max(tags, key=score)
+    
+class AsyncAprilTagFinder(AprilTagFinder):
+    def __init__(self):
+        super().__init__()
+        self.frame_queue = Queue(maxsize=2) 
+        self.result_lock = threading.Lock()
+        self.latest_tags = []
+        self.running = True
+        self.thread = threading.Thread(target=self._process_loop, daemon=True)
+        self.thread.start()
+
+    def _process_loop(self):
+        while self.running:
+            try:
+                frame = self.frame_queue.get(timeout=0.1)
+            except Empty:
+                continue
+            tags = super().detect_tags(frame)
+            with self.result_lock:
+                self.latest_tags = tags
+
+    def submit_frame(self, frame):
+        try:
+            self.frame_queue.put_nowait(frame)
+        except:
+            pass
+
+    def get_latest_tags(self):
+        with self.result_lock:
+            return self.latest_tags.copy()
+
+    def stop(self):
+        self.running = False
+        self.thread.join()
