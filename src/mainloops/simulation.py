@@ -22,8 +22,8 @@ from src.vision.processor import Processor
 def simulation(logger: Logger, gui: GUI, odometry: Odometry, localization: Localization, frame_processor: Processor, autoalgae: AlgaePickupCommand, autocoral: CoralPickupCommand, autoreef: ReefScoringCommand, autoprocessor: ProcessorScoringCommand, cap: cv2.VideoCapture, out: cv2.VideoWriter) -> None:
     logger.info("Running in TESTING mode.")
 
+    # Starting Location
     robot_x_m, robot_y_m, robot_heading_rad = 8, 2, 2.9
-    current_key: Optional[str] = None
     messages: List = []
 
     while cap.isOpened():
@@ -53,8 +53,8 @@ def simulation(logger: Logger, gui: GUI, odometry: Odometry, localization: Local
             tag for tag in apriltags if tag.id in reef_ids
         ]
         closest_apriltag = AprilTagFinder.get_best_tag(apriltags)
-        if closest_apriltag and closest_apriltag.relative_distance and closest_apriltag.relative_angle:
-            robot_x_m, robot_y_m, robot_heading_rad = localization.get_world_position(closest_apriltag.id, closest_apriltag.relative_distance, closest_apriltag.relative_angle)
+        if closest_apriltag and closest_apriltag.relative_distance_m and closest_apriltag.relative_angle_deg:
+            robot_x_m, robot_y_m, robot_heading_rad = localization.get_world_position(closest_apriltag.id, closest_apriltag.relative_distance_m, closest_apriltag.relative_angle_deg)
         t4 = time.perf_counter()
 
         odometry.game_pieces.add(visible_game_pieces)
@@ -67,7 +67,7 @@ def simulation(logger: Logger, gui: GUI, odometry: Odometry, localization: Local
         x = y = rot = 0.0
         success = False
 
-        if current_key == "1":
+        if DebugConfig.TASK == 0:
             algaes: List[Algae] = visible_game_pieces.get_algae()
             best_algae = autoalgae.compute_best_algae(algaes)
             if best_algae and best_algae.x:
@@ -82,22 +82,24 @@ def simulation(logger: Logger, gui: GUI, odometry: Odometry, localization: Local
                 else:
                     logger.warning("[TEST] Algae pathfinding failed.")
 
-        elif current_key == "2" and processor_apriltag:
-            x, y, rot, success = autoprocessor.get_processor_navigation_command(
-                processor_apriltag)
-            if success and processor_apriltag.center_x:
-                angle_to_processor = MonoVision.get_angle_to_object_in_degrees(
-                    processor_apriltag.center_x, DisplayConfig.FRAME_WIDTH_PX)
-                Display.draw_angle_line(frame, angle_to_processor)
-                logger.info(
-                    f'[TEST] Target Movement - X: {x}, Y: {y}, ROT: {rot}')
+        elif DebugConfig.TASK == 1:
+            if processor_apriltag:
+                x, y, rot, success = autoprocessor.get_processor_navigation_command(
+                    processor_apriltag)
+                if success and processor_apriltag.center_x:
+                    angle_to_processor = MonoVision.get_angle_to_object_in_degrees(
+                        processor_apriltag.center_x, DisplayConfig.FRAME_WIDTH_PX)
+                    Display.draw_angle_line(frame, angle_to_processor)
+                    logger.info(
+                        f'[TEST] Target Movement - X: {x}, Y: {y}, ROT: {rot}')
+                else:
+                    logger.warning("[TEST] Cannot Pathfind to Processor")
             else:
-                logger.warning("[TEST] Cannot Pathfind to Processor")
+                logger.warning("[TEST] Processor not Found")
         t6 = time.perf_counter()
 
-        messages.append(current_key)
         messages.append(f'X: {x}, Y: {y}, R: {rot}')
-        Display.insert_text_onto_frame(frame, messages)
+        Display.insert_text_onto_frame(camera_frame, messages)
         messages.clear()
         gui.update(camera_frame, odometry_frame)
         out.write(camera_frame)

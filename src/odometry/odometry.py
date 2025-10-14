@@ -4,15 +4,13 @@ import math
 import numpy as np
 from typing import Tuple
 
-from config import CameraConfig, FieldConfig, RamFernoRobotConfig
+from config import AprilTagConfig, CameraConfig, FieldConfig, RamFernoRobotConfig
 from logs.logging_setup import setup_logger
 from src.navigator.trackable_objects import Algae, Coral, Cage, GamePieces, Robot
 
 
 class Odometry:
     PIXELS_PER_METER = 70
-    MARGIN_PX = 20
-    INCH_TO_M = 0.0254
 
     ROBOT_COLOR = (0, 125, 255)
     APRILTAG_COLOR = (50, 50, 50)
@@ -22,90 +20,54 @@ class Odometry:
         Coral: (0, 255, 255),
         Robot: (255, 0, 255)
     }
-    WINDOW_NAME = "FRC 2025 Odometry Demo"
-
-    APRILTAG_POSITIONS = {
-        1: (656.98, 24.73, 126),
-        2: (656.98, 291.90, 234),
-        3: (452.40, 316.21, 270),
-        4: (365.20, 241.44, 0),
-        5: (365.20, 75.19, 0),
-        6: (530.49, 129.97, 300),
-        7: (546.87, 158.30, 0),
-        8: (530.49, 186.63, 60),
-        9: (497.77, 186.63, 120),
-        10: (481.39, 158.30, 180),
-        11: (497.77, 129.97, 240),
-        12: (33.91, 24.73, 54),
-        13: (33.91, 291.90, 306),
-        14: (325.68, 241.44, 180),
-        15: (325.68, 75.19, 180),
-        16: (238.49, 0.42, 90),
-        17: (160.39, 129.97, 240),
-        18: (144.00, 158.30, 180),
-        19: (160.39, 186.63, 120),
-        20: (193.10, 186.63, 60),
-        21: (209.49, 158.30, 0),
-        22: (193.10, 129.97, 300),
-    }
+    APRILTAG_CANVAS_SIZE_M = 0.35
+    IMG_W = (
+        int(FieldConfig.FIELD_WIDTH_M *
+            PIXELS_PER_METER) + 2
+    )
+    IMG_H = (
+        int(FieldConfig.FIELD_HEIGHT_M *
+            PIXELS_PER_METER) + 2
+    )
 
     def __init__(self) -> None:
         file_name = os.path.splitext(os.path.basename(__file__))[0]
         self.logger = setup_logger(file_name)
         self.logger.info("Odometry logger initialized.")
 
-        self.fps = 30
-        self.target_x = FieldConfig.FIELD_WIDTH_M * 0.85
-        self.target_y = FieldConfig.FIELD_HEIGHT_M * 0.75
+        self.target_x = 4.55
+        self.target_y = 4.05
         self.game_pieces = GamePieces()
 
-        self.APRILTAG_POSITIONS = {
-            k: (x * self.INCH_TO_M, y * self.INCH_TO_M, r)
-            for k, (x, y, r) in self.APRILTAG_POSITIONS.items()
-        }
-
-        self.IMG_W = (
-            int(FieldConfig.FIELD_WIDTH_M *
-                self.PIXELS_PER_METER) + 2 * self.MARGIN_PX
-        )
-        self.IMG_H = (
-            int(FieldConfig.FIELD_HEIGHT_M *
-                self.PIXELS_PER_METER) + 2 * self.MARGIN_PX
-        )
-
-        self.TAG_SIZE_M = 0.35
-
     def camera_to_canvas(self, x_m: float, y_m: float) -> Tuple[int, int]:
-        px = int(self.MARGIN_PX + x_m * self.PIXELS_PER_METER)
-        py = int(self.IMG_H - (self.MARGIN_PX + y_m * self.PIXELS_PER_METER))
+        px = int(x_m * self.PIXELS_PER_METER)
+        py = int(self.IMG_H - (y_m * self.PIXELS_PER_METER))
         return px, py
 
     def draw_field(self, canvas: np.ndarray) -> None:
         self.logger.debug("Drawing field.")
-        top_left = (self.MARGIN_PX, self.MARGIN_PX)
-        bottom_right = (self.IMG_W - self.MARGIN_PX,
-                        self.IMG_H - self.MARGIN_PX)
+        top_left = (0, 0)
+        bottom_right = (self.IMG_W,
+                        self.IMG_H)
         canvas[top_left[1]: bottom_right[1], top_left[0]: bottom_right[0]] = (
             50,
             120,
             50,
         )
-        cv2.rectangle(canvas, top_left, bottom_right, (255, 255, 255), 2)
-        canvas_x_px = int(self.MARGIN_PX + (FieldConfig.FIELD_WIDTH_M / 2)
-                          * self.PIXELS_PER_METER)
+        canvas_x_px = int((FieldConfig.FIELD_WIDTH_M / 2) * self.PIXELS_PER_METER)
         cv2.line(
             canvas,
-            (canvas_x_px, self.MARGIN_PX),
-            (canvas_x_px, self.IMG_H - self.MARGIN_PX),
+            (canvas_x_px, 0),
+            (canvas_x_px, self.IMG_H),
             (200, 200, 200),
             1,
         )
 
     def draw_apriltags(self, canvas: np.ndarray) -> None:
         self.logger.debug("Drawing AprilTags on field.")
-        half_px = int((self.TAG_SIZE_M * self.PIXELS_PER_METER) / 2)
+        half_px = int((self.APRILTAG_CANVAS_SIZE_M * self.PIXELS_PER_METER) / 2)
         for (tag_id, (x_m, y_m, rot_deg)) in (
-            self.APRILTAG_POSITIONS.items()
+            AprilTagConfig.APRILTAG_POSITIONS_M.items()
         ):
             px, py = self.camera_to_canvas(x_m, y_m)
             cv2.rectangle(
@@ -128,14 +90,14 @@ class Odometry:
                 (px - half_px + 4, py + 6),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.5,
-                (0, 0, 0),
+                (255, 255, 255),
                 1,
                 cv2.LINE_AA,
             )
             rad = math.radians(rot_deg)
             fx = int(px + math.cos(rad) * half_px * 1.3)
             fy = int(py - math.sin(rad) * half_px * 1.3)
-            cv2.line(canvas, (px, py), (fx, fy), (0, 0, 0), 2)
+            cv2.line(canvas, (px, py), (fx, fy), (255, 255, 255), 2)
 
     def draw_ramferno(self, canvas: np.ndarray, robot_x_m: float, robot_y_m: float, robot_heading_rad: float) -> None:
         self.logger.debug(
@@ -293,6 +255,7 @@ class Odometry:
 
         self.draw_field(canvas)
         self.draw_apriltags(canvas)
+        self.draw_target_position(canvas, robot_x_m, robot_y_m)
         self.draw_ramferno(canvas, robot_x_m, robot_y_m, robot_heading_rad)
         self.draw_vision_cone(canvas, robot_x_m, robot_y_m, robot_heading_rad)
         self.draw_detections(canvas, robot_x_m, robot_y_m, robot_heading_rad)
@@ -304,17 +267,3 @@ class Odometry:
         self.update_past_detections(robot_x_m, robot_y_m, robot_heading_rad)
 
         return frame
-
-
-if __name__ == "__main__":
-    odo = Odometry()
-
-    try:
-        while True:
-            frame = odo.process_frame(1, 1, 1)
-
-            cv2.imshow(odo.WINDOW_NAME, frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-    finally:
-        cv2.destroyAllWindows()

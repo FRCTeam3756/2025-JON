@@ -42,13 +42,13 @@ class AprilTagDetection:
         return self.tag_id
     
     @property
-    def relative_distance(self) -> Optional[float]:
+    def relative_distance_m(self) -> Optional[float]:
         pose = self.pose_t.flatten()
         distance = np.linalg.norm(pose)
         return float(distance)
     
     @property
-    def relative_angle(self) -> Optional[float]:
+    def relative_angle_deg(self) -> Optional[float]:
         if self.center_x:
             return math.degrees(math.atan((self.center_x - (CameraConfig.NATIVE_FRAME_WIDTH_PX / 2)) / (CameraConfig.NATIVE_FRAME_WIDTH_PX / (2 * math.tan(math.radians(CameraConfig.HORIZONTAL_FOV_DEG) / 2)))))
         else:

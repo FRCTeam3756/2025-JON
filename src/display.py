@@ -50,5 +50,5 @@ class Display:
             cv2.line(frame, tuple(pts[i]), tuple(pts[(i + 1) % 4]), (0, 255, 0), 2)
         c = tuple(np.array(apriltag.center, dtype=np.int32))
         cv2.drawMarker(frame, c, (0, 0, 255), cv2.MARKER_CROSS, 30, 2)
-        text = f"ID {apriltag.tag_id} | {apriltag.relative_distance:.2f} m"
+        text = f"ID {apriltag.tag_id} | {apriltag.relative_distance_m:.2f} m"
         cv2.putText(frame, text, (c[0] + 10, c[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)

@@ -4,8 +4,9 @@ import cv2
 from random import randint
 from config import FieldConfig
 
-from navigator.trackable_objects import Algae, Coral
-from odometry.odometry import Odometry
+from src.localization.localization import Localization
+from src.navigator.trackable_objects import Algae, Coral
+from src.odometry.odometry import Odometry
 
 def robot_pose_at_time(t):
     """Return (x,y,heading) for a looping figure-8 path."""
@@ -23,28 +24,30 @@ def robot_pose_at_time(t):
     return x, y, heading
 
 if __name__ == "__main__":
+    localization = Localization()
     odometry = Odometry()
 
-    for _ in range(3):
-        algae = Algae()
-        algae.update_relative_location(
-            randint(500, 2000), randint(-60, 60))
-        odometry.game_pieces.add(Algae, algae)
-    for _ in range(2):
-        coral = Coral()
-        coral.update_relative_location(
-            randint(1000, 2500), randint(-90, 90))
-        odometry.game_pieces.add(Coral, coral)
+    # for _ in range(3):
+    #     algae = Algae()
+    #     algae.update_relative_location(
+    #         randint(500, 2000), randint(-60, 60))
+    #     odometry.game_pieces.add(Algae, algae)
+    # for _ in range(2):
+    #     coral = Coral()
+    #     coral.update_relative_location(
+    #         randint(1000, 2500), randint(-90, 90))
+    #     odometry.game_pieces.add(Coral, coral)
 
     try:
         t0 = time.time()
         while True:
             total_time = time.time() - t0
-            x, y, heading = robot_pose_at_time(total_time)
+            # robot_x_m, robot_y_m, robot_heading_rad = robot_pose_at_time(total_time)
+            robot_x_m, robot_y_m, robot_heading_rad = localization.get_world_position(21, 3.5, 45)
 
-            frame = odometry.process_frame(x, y, heading)
+            frame = odometry.process_frame(robot_x_m, robot_y_m, robot_heading_rad)
 
-            cv2.imshow(odometry.WINDOW_NAME, frame)
+            cv2.imshow("FRC 2025 Odometry Demo", frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
     finally:
