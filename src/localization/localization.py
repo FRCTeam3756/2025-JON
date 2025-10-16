@@ -25,17 +25,18 @@ class Localization:
             raise ValueError(f"AprilTag {apriltag_number} not found.")
 
         tag_x_m, tag_y_m, tag_rotation_deg = AprilTagConfig.APRILTAG_POSITIONS_M[apriltag_number]
-        tag_heading_rad = math.radians(tag_rotation_deg)
 
+        tag_heading_rad = math.radians(tag_rotation_deg)
         rel_angle_rad = math.radians(relative_angle_deg)
 
-        robot_heading_rad = tag_heading_rad + math.pi + rel_angle_rad
-
-        robot_rel_x = relative_distance_m * math.cos(rel_angle_rad)
+        robot_rel_x = -relative_distance_m * math.cos(rel_angle_rad)
         robot_rel_y = relative_distance_m * math.sin(rel_angle_rad)
 
         robot_x_m = tag_x_m - (robot_rel_x * math.cos(tag_heading_rad) - robot_rel_y * math.sin(tag_heading_rad))
         robot_y_m = tag_y_m - (robot_rel_x * math.sin(tag_heading_rad) + robot_rel_y * math.cos(tag_heading_rad))
+
+        robot_heading_rad = tag_heading_rad + rel_angle_rad - math.pi
+        robot_heading_rad = (robot_heading_rad + math.pi) % (2 * math.pi) - math.pi
 
         self.logger.info(f'RamFerno sees AprilTag {apriltag_number} {relative_distance_m} away from it at {relative_angle_deg} from its center.')
         self.logger.info(f'The apriltag is absolutely positioned at {tag_x_m}x, {tag_y_m}y, facing {tag_rotation_deg} degrees in the real world.')

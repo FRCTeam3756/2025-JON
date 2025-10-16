@@ -101,7 +101,8 @@ def simulation(logger: Logger, gui: GUI, odometry: Odometry, localization: Local
         messages.append(f'X: {x}, Y: {y}, R: {rot}')
         Display.insert_text_onto_frame(camera_frame, messages)
         messages.clear()
-        gui.update(camera_frame, odometry_frame)
+        cv2.imshow("Demo", camera_frame)
+        # gui.update(camera_frame, odometry_frame)
         out.write(camera_frame)
         t7 = time.perf_counter()
         
