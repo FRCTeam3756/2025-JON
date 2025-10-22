@@ -3,10 +3,10 @@ import cv2
 import math
 import numpy as np
 from queue import Empty, Queue
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from threading import Lock, Thread
 
-from pupil_apriltags import Detector
+from pupil_apriltags import Detection, Detector
 
 from config import AprilTagConfig, CameraConfig, DisplayConfig
 
@@ -134,7 +134,7 @@ class AprilTagFinder:
         return [v[0] for v in unique.values()]
 
     @staticmethod
-    def get_best_tag(tags: List) -> Optional[AprilTagDetection]:
+    def get_best_tag(tags: List[AprilTagDetection]) -> Optional[AprilTagDetection]:
         if not tags:
             return None
         cx, cy = CameraConfig.NATIVE_FRAME_WIDTH_PX / 2, CameraConfig.NATIVE_FRAME_HEIGHT_PX / 2
@@ -143,19 +143,21 @@ class AprilTagFinder:
                             for i in range(4)])
             offset = np.linalg.norm(np.array(t.center) - np.array([cx, cy]))
             return size - 0.5 * offset
-        return max(tags, key=score)
+        
+        best_tag = max(tags, key=score)
+        return best_tag
     
 class AsyncAprilTagFinder(AprilTagFinder):
     def __init__(self):
         super().__init__()
-        self.frame_queue = Queue(maxsize=1) 
+        self.frame_queue: Queue[np.ndarray] = Queue(maxsize=1)
+        self.latest_tags: List[AprilTagDetection] = []
         self.result_lock = Lock()
-        self.latest_tags = []
         self.running = True
         self.thread = Thread(target=self._process_loop, daemon=True)
         self.thread.start()
 
-    def _process_loop(self):
+    def _process_loop(self) -> None:
         while self.running:
             try:
                 frame = self.frame_queue.get(timeout=0.1)
@@ -165,16 +167,16 @@ class AsyncAprilTagFinder(AprilTagFinder):
             with self.result_lock:
                 self.latest_tags = tags
 
-    def submit_frame(self, frame):
+    def submit_frame(self, frame: np.ndarray) -> None:
         try:
             self.frame_queue.put_nowait(frame)
         except:
             pass
 
-    def get_latest_tags(self):
+    def get_latest_tags(self) -> List[AprilTagDetection]:
         with self.result_lock:
             return self.latest_tags.copy()
 
-    def stop(self):
+    def stop(self) -> None:
         self.running = False
         self.thread.join()

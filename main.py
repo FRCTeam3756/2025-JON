@@ -19,6 +19,7 @@ from src.navigator.autoalgae import AlgaePickupCommand
 from src.navigator.autocoral import CoralPickupCommand
 from src.navigator.autoreef import ReefScoringCommand
 from src.navigator.autoprocessor import ProcessorScoringCommand
+from src.visualization.visualization import Visualization
 
 ###############################################################
 
@@ -28,6 +29,7 @@ class RobotSystems:
     gui: GUI
     roborio: RoboRio
     odometry: Odometry
+    visualization: Visualization
     localization: Localization
     processor: Processor
     autoalgae: AlgaePickupCommand
@@ -64,6 +66,7 @@ def init_robot_systems() -> RobotSystems:
         gui = GUI()
         roborio = RoboRio()
         odometry = Odometry()
+        visualization = Visualization()
         localization = Localization()
         processor = Processor()
         autoalgae = AlgaePickupCommand()
@@ -76,7 +79,7 @@ def init_robot_systems() -> RobotSystems:
         raise e
 
     logger.info("System initialized successfully.")
-    return RobotSystems(logger, gui, roborio, odometry, localization,
+    return RobotSystems(logger, gui, roborio, odometry, visualization, localization,
                         processor, autoalgae, autocoral, autoreef, autoprocessor, cap, out)
 
 ###############################################################
@@ -88,8 +91,8 @@ if __name__ == "__main__":
     try:
         if DebugConfig.TESTING:
             simulation(
-                systems.logger, systems.gui, systems.odometry, systems.localization,
-                systems.processor, systems.autoalgae, systems.autocoral,
+                systems.logger, systems.gui, systems.odometry, systems.visualization, 
+                systems.localization, systems.processor, systems.autoalgae, systems.autocoral,
                 systems.autoreef, systems.autoprocessor, systems.cap, systems.out
             )
         else:

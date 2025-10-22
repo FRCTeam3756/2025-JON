@@ -4,6 +4,7 @@ import numpy as np
 from pupil_apriltags import Detector
 
 from config import AprilTagConfig, FieldConfig
+from visualization.visualization import Visualization
 
 
 class PoseEstimator:
@@ -28,46 +29,13 @@ class PoseEstimator:
         return t_fc
 
 
-class FieldVisualizer:
-    def __init__(self):
-        self.scale = 100
-        self.img_width = int(FieldConfig.FIELD_WIDTH_M * self.scale)
-        self.img_height = int(FieldConfig.FIELD_HEIGHT_M * self.scale)
-
-    def draw_field(self, camera_positions=None):
-        field_img = np.ones((self.img_height, self.img_width, 3), dtype=np.uint8) * 50
-
-        cv2.rectangle(field_img, (0, 0),
-                      (self.img_width - 1, self.img_height - 1),
-                      (255, 255, 255), 2)
-
-        for tag_id, pos in AprilTagConfig.APRILTAG_POSITIONS_M.items():
-            if pos is None:
-                continue
-            x_m, y_m, _ = pos
-            x_px = int(x_m * self.scale)
-            y_px = int(self.img_height - y_m * self.scale)
-            cv2.circle(field_img, (x_px, y_px), 8, (0, 255, 255), -1)
-            cv2.putText(field_img, f"{tag_id}", (x_px + 10, y_px - 10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-
-        if camera_positions:
-            for cam in camera_positions:
-                x, y, _ = cam
-                x_px = int(x * self.scale)
-                y_px = int(self.img_height - y * self.scale)
-                cv2.circle(field_img, (x_px, y_px), 15, (0, 0, 255), -1)
-
-        return field_img
-
-
 class VideoPoseEstimator:
     def __init__(self, video_path, camera_matrix, dist_coeffs):
         self.cap = cv2.VideoCapture(video_path)
         if not self.cap.isOpened():
             raise IOError(f"Could not open video: {video_path}")
         self.pose_estimator = PoseEstimator(camera_matrix, dist_coeffs)
-        self.visualizer = FieldVisualizer()
+        self.visualization = Visualization()
 
     def process(self):
         camera_positions = []
@@ -115,14 +83,13 @@ class VideoPoseEstimator:
                 cv2.putText(frame, f"ID {tag_id}", tuple(tag.corners[0].astype(int)), 
                             cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
 
-            if camera_positions:
-                avg_pos = np.mean(camera_positions, axis=0)
-                x, y, z = avg_pos
+            for position in camera_positions:
+                x, y, z = position
                 cv2.putText(frame, f"Camera: x={x:.2f}m, y={y:.2f}m, z={z:.2f}m",
                             (30, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
                 print(f"Camera position: x={x:.2f}, y={y:.2f}, z={z:.2f}")
 
-            field_img = self.visualizer.draw_field(camera_positions)
+            field_img = self.visualization.draw_field()
 
             cv2.imshow("Pose Estimation", frame)
             cv2.imshow("Field Map", field_img)
