@@ -1,14 +1,22 @@
+"""
+Copyright (c) FRC Team 3756 RamFerno.
+Open Source Software; you can modify and/or share it under the terms of
+the license viewable in the root directory of this project.
+"""
+
 import os
 import math
 from typing import List, Optional, Tuple
 
 import numpy as np
-from pupil_apriltags import Detection
 
 from logs.logging_setup import setup_logger
-from config import AprilTagConfig
 from src.apriltags.apriltags import AprilTagDetection, AprilTagFinder
 from src.odometry.odometry import Odometry
+
+from constants.field.apriltags import AprilTagConfig
+
+###############################################################
 
 class Localization:
     def __init__(self) -> None:

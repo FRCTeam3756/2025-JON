@@ -1,23 +1,33 @@
+"""
+Copyright (c) FRC Team 3756 RamFerno.
+Open Source Software; you can modify and/or share it under the terms of
+the license viewable in the root directory of this project.
+"""
+
+###############################################################
+
 import time
 from logging import Logger
 from typing import List, Optional
 
 import cv2
 
-from config import DebugConfig, DisplayConfig
-from src.apriltags.apriltags import AprilTagDetection, AprilTagFinder
+from constants.monitoring.display import DisplayConfig
+from src.apriltags.apriltags import AprilTagDetection
 from src.camera.monovision import MonoVision
 from src.display import Display
 from src.gui import GUI
 from src.localization.localization import Localization
-from src.navigator.autoalgae import AlgaePickupCommand
-from src.navigator.autocoral import CoralPickupCommand
-from src.navigator.autoprocessor import ProcessorScoringCommand
-from src.navigator.autoreef import ReefScoringCommand
+from src.navigator.algae import AlgaePickupCommand
+from src.navigator.coral import CoralPickupCommand
+from src.navigator.processor import ProcessorScoringCommand
+from src.navigator.reef import ReefScoringCommand
 from src.navigator.trackable_objects import Algae
 from src.odometry.odometry import Odometry
 from src.vision.processor import Processor
 from src.visualization.visualization import Visualization
+
+###############################################################
 
 
 def simulation(logger: Logger, gui: GUI, odometry: Odometry, visualization: Visualization, localization: Localization, frame_processor: Processor, autoalgae: AlgaePickupCommand, autocoral: CoralPickupCommand, autoreef: ReefScoringCommand, autoprocessor: ProcessorScoringCommand, cap: cv2.VideoCapture, out: cv2.VideoWriter) -> None:
@@ -89,7 +99,7 @@ def simulation(logger: Logger, gui: GUI, odometry: Odometry, visualization: Visu
                 else:
                     logger.warning("[TEST] Algae pathfinding failed.")
 
-        elif DebugConfig.TASK == 1: 
+        elif DebugConfig.TASK == 1:
             if processor_apriltag:
                 x, y, rot, success = autoprocessor.get_processor_navigation_command(
                     processor_apriltag)
@@ -116,7 +126,7 @@ def simulation(logger: Logger, gui: GUI, odometry: Odometry, visualization: Visu
         t7 = time.perf_counter()
 
 ###############################################################
-        
+
         frame_end = time.perf_counter()
         total_time_ms = (frame_end - frame_start) * 1000
 

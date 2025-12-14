@@ -1,10 +1,19 @@
+"""
+Copyright (c) FRC Team 3756 RamFerno.
+Open Source Software; you can modify and/or share it under the terms of
+the license viewable in the root directory of this project.
+"""
+
 from typing import List
+
 import cv2
 import numpy as np
 from pupil_apriltags import Detector
 
-from config import AprilTagConfig, FieldConfig
+from constants.field.apriltags import AprilTagConfig
 from visualization.visualization import Visualization
+
+###############################################################
 
 
 class PoseEstimator:
@@ -45,7 +54,7 @@ class VideoPoseEstimator:
             if not ret:
                 break
 
-            gray = np.astype(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY), np.uint8)
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY).astype(np.uint8)
             tags = self.pose_estimator.detector.detect(
                 gray,
                 estimate_tag_pose=True,

@@ -1,8 +1,16 @@
+"""
+Copyright (c) FRC Team 3756 RamFerno.
+Open Source Software; you can modify and/or share it under the terms of
+the license viewable in the root directory of this project.
+"""
+
 import cv2
 
-from config import DisplayConfig
+from constants.monitoring.display import DisplayConfig
 from src.display import Display
 from src.apriltags.apriltags import AprilTagFinder
+
+###############################################################
 
 if __name__ == "__main__":
     cap = cv2.VideoCapture(DisplayConfig.INPUT_PATH)

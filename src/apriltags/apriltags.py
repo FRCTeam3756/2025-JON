@@ -1,3 +1,9 @@
+"""
+Copyright (c) FRC Team 3756 RamFerno.
+Open Source Software; you can modify and/or share it under the terms of
+the license viewable in the root directory of this project.
+"""
+
 import os
 import cv2
 import math
@@ -6,9 +12,11 @@ from queue import Empty, Queue
 from typing import List, Optional, Tuple
 from threading import Lock, Thread
 
-from pupil_apriltags import Detection, Detector
+from pupil_apriltags import Detector
 
-from config import AprilTagConfig, CameraConfig, DisplayConfig
+from constants.field.apriltags import AprilTagConfig
+from constants.robot.camera import CameraConfig
+from constants.monitoring.display import DisplayConfig
 
 ###############################################################
 
@@ -146,6 +154,8 @@ class AprilTagFinder:
         
         best_tag = max(tags, key=score)
         return best_tag
+
+###############################################################
     
 class AsyncAprilTagFinder(AprilTagFinder):
     def __init__(self):

@@ -1,7 +1,18 @@
+"""
+Copyright (c) FRC Team 3756 RamFerno.
+Open Source Software; you can modify and/or share it under the terms of
+the license viewable in the root directory of this project.
+"""
+
 import math
 import tkinter as tk
-from config import CameraConfig, FieldConfig, AprilTagConfig, RamFernoRobotConfig
+from constants.robot.camera import CameraConfig
+from constants.field.field import FieldConfig
+from constants.field.apriltags import AprilTagConfig
+from constants.robot.drivetrain import DriveTrainConfig
 from src.localization.localization import Localization
+
+###############################################################
 
 
 class FieldVisualizer:
@@ -38,8 +49,8 @@ class FieldVisualizer:
         self.position_label = tk.Label(root, text="Robot Position: (x=?, y=?)", anchor="w", font=("Arial", 10))
         self.position_label.pack(fill="x")
 
-        self.robot_half_width = (RamFernoRobotConfig.ROBOT_WIDTH_M * self.SCALE) / 2
-        self.robot_half_height = (RamFernoRobotConfig.ROBOT_LENGTH_M * self.SCALE) / 2
+        self.robot_half_width = (DriveTrainConfig.ROBOT_WIDTH_M * self.SCALE) / 2
+        self.robot_half_height = (DriveTrainConfig.ROBOT_LENGTH_M * self.SCALE) / 2
 
     def draw_apriltags(self):
         for tag_id, (x_m, y_m, _) in self.config.APRILTAG_POSITIONS_M.items():

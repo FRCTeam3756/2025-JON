@@ -1,3 +1,9 @@
+"""
+Copyright (c) FRC Team 3756 RamFerno.
+Open Source Software; you can modify and/or share it under the terms of
+the license viewable in the root directory of this project.
+"""
+
 import os
 import cv2
 import numpy as np
@@ -5,6 +11,8 @@ import pyautogui
 
 from logs.logging_setup import setup_logger
 
+
+################################################
 
 class GUI:
     WINDOW_NAME = "JON GUI"

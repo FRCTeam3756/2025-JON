@@ -1,3 +1,8 @@
+"""
+Copyright (c) FRC Team 3756 RamFerno.
+Open Source Software; you can modify and/or share it under the terms of
+the license viewable in the root directory of this project.
+"""
 
 import math
 import os
@@ -6,10 +11,16 @@ from typing import List, Tuple
 import cv2
 import numpy as np
 
-from config import AprilTagConfig, CameraConfig, FieldConfig, RamFernoRobotConfig
-from logs.logging_setup import setup_logger
-from navigator.trackable_objects import Algae, Cage, Coral, GamePieces, Robot
+from constants.field.apriltags import AprilTagConfig
+from constants.robot.camera import CameraConfig
+from constants.field.field import FieldConfig
+from constants.robot.drivetrain import DriveTrainConfig
+from src.navigator.trackable_objects import Algae, Cage, Coral, GamePieces, Robot
 
+from logs.logging_setup import setup_logger
+
+
+################################################
 
 class Visualization:
     PIXELS_PER_METER = 70
@@ -121,9 +132,9 @@ class Visualization:
             robot_x_m, robot_y_m)
 
         robot_half_width_px = (
-            RamFernoRobotConfig.ROBOT_WIDTH_M * self.PIXELS_PER_METER) / 2
+            DriveTrainConfig.ROBOT_WIDTH_M * self.PIXELS_PER_METER) / 2
         robot_half_length_px = (
-            RamFernoRobotConfig.ROBOT_LENGTH_M * self.PIXELS_PER_METER) / 2
+            DriveTrainConfig.ROBOT_LENGTH_M * self.PIXELS_PER_METER) / 2
         corners = [
             (-robot_half_length_px, -robot_half_width_px),  # back left
             (robot_half_length_px, -robot_half_width_px),  # front left

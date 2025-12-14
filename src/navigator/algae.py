@@ -1,10 +1,16 @@
+"""
+Copyright (c) FRC Team 3756 RamFerno.
+Open Source Software; you can modify and/or share it under the terms of
+the license viewable in the root directory of this project.
+"""
+
 import os
 import math
 import logging
 from typing import Optional, Tuple, List
 from logs.logging_setup import setup_logger
 
-from config import AutoAlgaeConfig
+from constants.field.algae import AlgaeConfig
 from src.navigator.trackable_objects import Algae
 
 ################################################
@@ -26,9 +32,9 @@ class AlgaePickupCommand:
         y: Optional[float] = 0.0
         rot: Optional[float] = 0.0
 
-        if algae.relative_distance_mm and algae.relative_distance_mm > AutoAlgaeConfig.ALGAE_DESIRED_DISTANCE_MM:
-            speed_percent = min((algae.relative_distance_mm - AutoAlgaeConfig.ALGAE_DESIRED_DISTANCE_MM) / (
-                AutoAlgaeConfig.ALGAE_MAX_DISTANCE_MM - AutoAlgaeConfig.ALGAE_DESIRED_DISTANCE_MM) * 100, 100)
+        if algae.relative_distance_mm and algae.relative_distance_mm > AlgaeConfig.ALGAE_DESIRED_DISTANCE_MM:
+            speed_percent = min((algae.relative_distance_mm - AlgaeConfig.ALGAE_DESIRED_DISTANCE_MM) / (
+                AlgaeConfig.ALGAE_MAX_DISTANCE_MM - AlgaeConfig.ALGAE_DESIRED_DISTANCE_MM) * 100, 100)
         else:
             speed_percent = None
 
@@ -73,8 +79,8 @@ class AlgaePickupCommand:
             return None
         
         return (
-            AutoAlgaeConfig.ALGAE_CONFIDENCE_WEIGHT_PCT * algae.confidence +
-            AutoAlgaeConfig.ALGAE_DISTANCE_WEIGHT_PCT * ((120 - algae.relative_distance_mm) / 120) +
-            AutoAlgaeConfig.ALGAE_ANGULAR_WEIGHT_PCT *
+            AlgaeConfig.ALGAE_CONFIDENCE_WEIGHT_PCT * algae.confidence +
+            AlgaeConfig.ALGAE_DISTANCE_WEIGHT_PCT * ((120 - algae.relative_distance_mm) / 120) +
+            AlgaeConfig.ALGAE_ANGULAR_WEIGHT_PCT *
             (1 - abs(algae.relative_angle_deg) / 180)
         )

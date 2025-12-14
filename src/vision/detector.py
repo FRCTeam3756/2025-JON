@@ -1,3 +1,9 @@
+"""
+Copyright (c) FRC Team 3756 RamFerno.
+Open Source Software; you can modify and/or share it under the terms of
+the license viewable in the root directory of this project.
+"""
+
 import os
 import re
 import logging
@@ -11,7 +17,7 @@ import torch
 import numpy as np
 from ultralytics.models import YOLO
 
-from config import DetectorConfig
+from constants.vision import DetectorConfig
 from logs.logging_setup import setup_logger
 
 ###############################################################
@@ -73,6 +79,8 @@ class YOLODetector:
                 class_ids.append(int(box.cls[0]))
 
         return np.array(boxes), np.array(confidences), np.array(class_ids)
+
+################################################
 
 class AsyncYOLODetector(YOLODetector):
     def __init__(self):

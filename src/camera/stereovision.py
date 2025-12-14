@@ -1,7 +1,16 @@
+"""
+Copyright (c) FRC Team 3756 RamFerno.
+Open Source Software; you can modify and/or share it under the terms of
+the license viewable in the root directory of this project.
+"""
+
 import math
 from typing import List, Tuple
 
-from config import CameraConfig
+from constants.robot.camera import CameraConfig
+from constants.monitoring.display import DisplayConfig
+
+###############################################################
 
 
 class StereoVision:
@@ -18,7 +27,7 @@ class StereoVision:
         if disparity == 0.0:
             return float('inf')  # Return infinity if object is too far away
 
-        distance = (((CameraConfig.FRAME_WIDTH_PX / CameraConfig.DIAGONAL_SENSOR_WIDTH_MM) *
+        distance = (((DisplayConfig.FRAME_WIDTH_PX / CameraConfig.DIAGONAL_SENSOR_WIDTH_MM) *
                     CameraConfig.FOCAL_LENGTH_MM) * CameraConfig.SPACE_BETWEEN_STEREO_CAMERAS_MM) / disparity
 
         return distance
@@ -27,12 +36,12 @@ class StereoVision:
     def calculate_angle_deg(left_camera_box: List[int], right_camera_box: List[int]) -> float:
         """Calculate the angle of deviation from the center of the frame."""
         center_x = (left_camera_box[0] + right_camera_box[0]) / 2
-        deviation = center_x - (CameraConfig.FRAME_WIDTH_PX / 2)
+        deviation = center_x - (DisplayConfig.FRAME_WIDTH_PX / 2)
 
         if abs(deviation) < 1e-6:
             return 0.0
 
-        angle_rad = math.atan(deviation / ((CameraConfig.FRAME_WIDTH_PX /
+        angle_rad = math.atan(deviation / ((DisplayConfig.FRAME_WIDTH_PX /
                                             CameraConfig.DIAGONAL_SENSOR_WIDTH_MM) * CameraConfig.FOCAL_LENGTH_MM))
         return math.degrees(angle_rad)
 

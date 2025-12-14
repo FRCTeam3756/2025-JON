@@ -1,7 +1,14 @@
+"""
+Copyright (c) FRC Team 3756 RamFerno.
+Open Source Software; you can modify and/or share it under the terms of
+the license viewable in the root directory of this project.
+"""
+
 import os
 import logging
 from typing import List, Optional, Tuple
-from config import DisplayConfig, AutoHangConfig
+from constants.monitoring.display import DisplayConfig
+from constants.field.cage import CageConfig
 from logs.logging_setup import setup_logger
 
 
@@ -27,7 +34,7 @@ class HangDriveCommand:
             x = self.get_driving_speed(cage)
             rot = self.get_rotation_amount(cage)
         else:
-            x = AutoHangConfig.MISSING_CAGE_SPEED_PCT
+            x = CageConfig.MISSING_CAGE_SPEED_PCT
 
         self.logger.info(x, y, rot, True)
         return (x, y, rot, True)
@@ -38,9 +45,9 @@ class HangDriveCommand:
 
         best_cage: List[float] = max(
             cages,
-            key=lambda cage: ((cage[2] / DisplayConfig.FRAME_WIDTH_PX) * AutoHangConfig.CAGE_SIZE_WEIGHT_PCT) +
+            key=lambda cage: ((cage[2] / DisplayConfig.FRAME_WIDTH_PX) * CageConfig.CAGE_SIZE_WEIGHT_PCT) +
             ((1 - abs(cage[0] - DisplayConfig.FRAME_WIDTH_PX / 2) /
-             (DisplayConfig.FRAME_WIDTH_PX / 2)) * AutoHangConfig.CAGE_CENTERED_WEIGHT_PCT)
+             (DisplayConfig.FRAME_WIDTH_PX / 2)) * CageConfig.CAGE_CENTERED_WEIGHT_PCT)
         )
         return best_cage
 
@@ -52,9 +59,9 @@ class HangDriveCommand:
             (DisplayConfig.FRAME_WIDTH_PX / 2) if cage else 0.0
 
         strafe_amount = self.clamp(
-            strafe_amount, -AutoHangConfig.POLE_STRAFING_MAXIMUM_PCT, AutoHangConfig.POLE_STRAFING_MINIMUM_PCT)
+            strafe_amount, -CageConfig.POLE_STRAFING_MAXIMUM_PCT, CageConfig.POLE_STRAFING_MINIMUM_PCT)
 
-        return 0.0 if abs(strafe_amount) < AutoHangConfig.POLE_STRAFING_MINIMUM_PCT else strafe_amount
+        return 0.0 if abs(strafe_amount) < CageConfig.POLE_STRAFING_MINIMUM_PCT else strafe_amount
 
     def get_driving_speed(self, cage: List[float]) -> float:
         return cage[2] / 640 if cage else 0.0

@@ -1,9 +1,16 @@
+"""
+Copyright (c) FRC Team 3756 RamFerno.
+Open Source Software; you can modify and/or share it under the terms of
+the license viewable in the root directory of this project.
+"""
+
 import os
 import json
 import logging
 from logs.logging_setup import setup_logger
 from typing import Optional, Dict, Any
-from config import NetworkingConfig
+
+from constants.networking import NetworkingConfig
 
 from networktables import NetworkTables
 

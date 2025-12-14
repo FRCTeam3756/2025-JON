@@ -1,10 +1,18 @@
+"""
+Copyright (c) FRC Team 3756 RamFerno.
+Open Source Software; you can modify and/or share it under the terms of
+the license viewable in the root directory of this project.
+"""
+
 import cv2
 import math
 import numpy as np
 from typing import List, Tuple, Union
 
 from src.apriltags.apriltags import AprilTagDetection
-from config import DisplayConfig
+from constants.monitoring.display import DisplayConfig
+
+################################################
 
 class Display:
     @staticmethod

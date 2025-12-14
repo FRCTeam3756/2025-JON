@@ -1,11 +1,15 @@
+"""
+Copyright (c) FRC Team 3756 RamFerno.
+Open Source Software; you can modify and/or share it under the terms of
+the license viewable in the root directory of this project.
+"""
+
 import math
 import time
 import cv2
-from random import randint
-from config import FieldConfig
+from constants.field.field import FieldConfig
 
 from src.localization.localization import Localization
-from src.navigator.trackable_objects import Algae, Coral
 from src.odometry.odometry import Odometry
 
 def robot_pose_at_time(t):

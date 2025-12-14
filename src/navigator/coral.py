@@ -1,9 +1,15 @@
+"""
+Copyright (c) FRC Team 3756 RamFerno.
+Open Source Software; you can modify and/or share it under the terms of
+the license viewable in the root directory of this project.
+"""
+
 import os
 import math
 from typing import Optional, Tuple, List
 from logs.logging_setup import setup_logger
 
-from config import AutoCoralConfig
+from constants.field.coral import CoralConfig
 from src.navigator.trackable_objects import Coral
 
 ################################################
@@ -24,9 +30,9 @@ class CoralPickupCommand:
         y: Optional[float] = 0.0
         rot: Optional[float] = 0.0
 
-        if coral.relative_distance_mm and coral.relative_distance_mm > AutoCoralConfig.CORAL_DESIRED_DISTANCE_MM:
-            speed_percent = min((coral.relative_distance_mm - AutoCoralConfig.CORAL_DESIRED_DISTANCE_MM) / (
-                AutoCoralConfig.CORAL_MAX_DISTANCE_MM - AutoCoralConfig.CORAL_DESIRED_DISTANCE_MM) * 100, 100)
+        if coral.relative_distance_mm and coral.relative_distance_mm > CoralConfig.CORAL_DESIRED_DISTANCE_MM:
+            speed_percent = min((coral.relative_distance_mm - CoralConfig.CORAL_DESIRED_DISTANCE_MM) / (
+                CoralConfig.CORAL_MAX_DISTANCE_MM - CoralConfig.CORAL_DESIRED_DISTANCE_MM) * 100, 100)
         else:
             speed_percent = None
 
@@ -67,8 +73,8 @@ class CoralPickupCommand:
             return None
         
         return (
-            AutoCoralConfig.CORAL_CONFIDENCE_WEIGHT_PCT * coral.confidence +
-            AutoCoralConfig.CORAL_DISTANCE_WEIGHT_PCT * ((120 - coral.relative_distance_mm) / 120) +
-            AutoCoralConfig.CORAL_ANGULAR_WEIGHT_PCT *
+            CoralConfig.CORAL_CONFIDENCE_WEIGHT_PCT * coral.confidence +
+            CoralConfig.CORAL_DISTANCE_WEIGHT_PCT * ((120 - coral.relative_distance_mm) / 120) +
+            CoralConfig.CORAL_ANGULAR_WEIGHT_PCT *
             (1 - abs(coral.relative_angle_deg) / 180)
         )

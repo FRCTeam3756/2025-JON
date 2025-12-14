@@ -1,10 +1,19 @@
+"""
+Copyright (c) FRC Team 3756 RamFerno.
+Open Source Software; you can modify and/or share it under the terms of
+the license viewable in the root directory of this project.
+"""
+
 import os
 import io
 import sys
 import logging
 from logging import Logger
 from datetime import datetime
-from config import LoggingConfig
+
+from constants.monitoring.logging import LoggingConfig
+
+###############################################################
 
 def setup_logger(file_name: str) -> Logger:
     log_dir = f"logs/files/{datetime.now():%Y-%m-%d_%H-%M-%S}"

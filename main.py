@@ -1,3 +1,9 @@
+"""
+Copyright (c) FRC Team 3756 RamFerno.
+Open Source Software; you can modify and/or share it under the terms of
+the license viewable in the root directory of this project.
+"""
+
 import os
 import cv2
 import logging
@@ -6,7 +12,7 @@ from logging import Logger
 from dataclasses import dataclass
 
 from logs.logging_setup import setup_logger
-from config import DebugConfig, DisplayConfig
+from constants.monitoring.display import DisplayConfig
 
 from src.mainloops.simulation import simulation
 from src.mainloops.competition import competition
@@ -15,13 +21,14 @@ from src.gui import GUI
 from src.networking.roborio import RoboRio
 from src.odometry.odometry import Odometry
 from src.vision.processor import Processor
-from src.navigator.autoalgae import AlgaePickupCommand
-from src.navigator.autocoral import CoralPickupCommand
-from src.navigator.autoreef import ReefScoringCommand
-from src.navigator.autoprocessor import ProcessorScoringCommand
+from src.navigator.algae import AlgaePickupCommand
+from src.navigator.coral import CoralPickupCommand
+from src.navigator.reef import ReefScoringCommand
+from src.navigator.processor import ProcessorScoringCommand
 from src.visualization.visualization import Visualization
 
 ###############################################################
+
 
 @dataclass
 class RobotSystems:
@@ -41,6 +48,7 @@ class RobotSystems:
 
 ###############################################################
 
+
 def setup_video_io() -> Tuple[cv2.VideoCapture, cv2.VideoWriter]:
     cap = cv2.VideoCapture(DisplayConfig.INPUT_PATH)
     if not cap.isOpened():
@@ -57,6 +65,7 @@ def setup_video_io() -> Tuple[cv2.VideoCapture, cv2.VideoWriter]:
     )
 
     return cap, out
+
 
 def init_robot_systems() -> RobotSystems:
     file_name = os.path.splitext(os.path.basename(__file__))[0]
@@ -89,18 +98,18 @@ if __name__ == "__main__":
     systems = init_robot_systems()
 
     try:
-        if DebugConfig.TESTING:
-            simulation(
-                systems.logger, systems.gui, systems.odometry, systems.visualization, 
-                systems.localization, systems.processor, systems.autoalgae, systems.autocoral,
-                systems.autoreef, systems.autoprocessor, systems.cap, systems.out
-            )
-        else:
-            competition(
-                systems.logger, systems.processor, systems.roborio,
-                systems.autoalgae, systems.autocoral, systems.autoreef,
-                systems.autoprocessor, systems.cap, systems.out
-            )
+        # if DebugConfig.TESTING:
+        simulation(
+            systems.logger, systems.gui, systems.odometry, systems.visualization,
+            systems.localization, systems.processor, systems.autoalgae, systems.autocoral,
+            systems.autoreef, systems.autoprocessor, systems.cap, systems.out
+        )
+        # else:
+        #     competition(
+        #         systems.logger, systems.processor, systems.roborio,
+        #         systems.autoalgae, systems.autocoral, systems.autoreef,
+        #         systems.autoprocessor, systems.cap, systems.out
+        #     )
     finally:
         systems.processor.apriltag_detector.stop()
         systems.cap.release()

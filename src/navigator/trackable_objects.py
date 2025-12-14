@@ -1,6 +1,14 @@
+"""
+Copyright (c) FRC Team 3756 RamFerno.
+Open Source Software; you can modify and/or share it under the terms of
+the license viewable in the root directory of this project.
+"""
+
 import math
 from typing import Optional, TypeVar, List, Type, Dict, Union
 
+
+################################################
 
 class Object:
     """The abstract class for all vision tracked objects"""
@@ -39,12 +47,16 @@ class Object:
         self.timestamp = timestamp
 
 
+################################################
+
 class Algae(Object):
     """The class that holds all the characteristics of an Algae"""
 
     def __init__(self) -> None:
         super().__init__()
 
+
+################################################
 
 class Cage(Object):
     """The class that holds all the characteristics of a Cage"""
@@ -53,12 +65,16 @@ class Cage(Object):
         super().__init__()
 
 
+################################################
+
 class Coral(Object):
     """The class that holds all the characteristics of a Coral"""
 
     def __init__(self) -> None:
         super().__init__()
 
+
+################################################
 
 class Robot(Object):
     """The class that holds all the characteristics of a Robot"""

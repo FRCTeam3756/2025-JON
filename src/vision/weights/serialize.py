@@ -1,10 +1,18 @@
+"""
+Copyright (c) FRC Team 3756 RamFerno.
+Open Source Software; you can modify and/or share it under the terms of
+the license viewable in the root directory of this project.
+"""
+
 import os
 import re
+import shutil
 import platform
+
 import torch
 from ultralytics import YOLO
-import shutil
 
+################################################
 
 def get_system_identifier():
     system = platform.system().lower()
@@ -38,6 +46,8 @@ def main():
     else:
         print(f"Warning: export path {export_path} does not exist!")
 
+
+################################################
 
 if __name__ == "__main__":
     main()
