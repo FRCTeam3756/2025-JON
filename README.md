@@ -1,4 +1,4 @@
-# FRC 3756 Self Driving - 2025
+# RamFerno PyroPathing - 2025
 
 ## Overview
 This repository contains the code and documentation for FRC Team RamFerno 3756's self-driving system for the 2025 season.
